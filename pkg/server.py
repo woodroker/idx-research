@@ -1,9 +1,9 @@
 """Server lokal screener - sumber data tunggal: SQLite (screener.db).
 Upload -> parse di server (parsers.py, setara parse() dashboard) -> simpan ke SQLite.
-Dashboard membaca seluruh data dari /api/data. IndexedDB/cloud tidak lagi dipakai (hanya dibaca sekali utk migrasi).
+Dashboard membaca seluruh data dari /api/data. IndexedDB lama hanya DIBACA sekali utk migrasi.
 """
 from pathlib import Path
-from flask import Flask, jsonify, request, send_file, Response
+from flask import Flask, jsonify, request, send_file, Response, send_from_directory
 from werkzeug.utils import secure_filename
 import pandas as pd
 import gzip, io, json, os, threading
@@ -14,6 +14,7 @@ BASE = Path(__file__).resolve().parent
 TEMPLATE = BASE / "templates" / "index.html"
 DATA_DIR = BASE / "data"          # arsip CSV (cadangan mentah, BUKAN sumber kalkulasi)
 UPLOAD_DIR = BASE / "uploads"
+STATIC_DIR = BASE / "static"
 DATA_DIR.mkdir(exist_ok=True)
 UPLOAD_DIR.mkdir(exist_ok=True)
 database.initialize()
@@ -98,7 +99,25 @@ def common_headers(response):
 def index():
     if not TEMPLATE.exists():
         return "templates/index.html tidak ditemukan.", 500
-    return send_file(TEMPLATE, mimetype="text/html")
+    html = TEMPLATE.read_text(encoding="utf-8")
+    # The React chart component reused the name RR of the normal render function, causing
+    # the runtime error "Cannot destructure property 'C'" when the app rendered its tab.
+    html = html.replace("var RR=({C})=>", "var RRComp=({C})=>")
+    html = html.replace("RC.createElement(RR,{C:RXC})", "RC.createElement(RRComp,{C:RXC})")
+    css = '<link rel="stylesheet" href="/assets/ui-enhancements.css">'
+    js = '<script src="/assets/ui-enhancements.js" defer></script>'
+    if "ui-enhancements.css" not in html:
+        html = html.replace("</head>", css + "</head>", 1)
+    if "ui-enhancements.js" not in html:
+        html = html.replace("</body>", js + "</body>", 1)
+    return Response(html, mimetype="text/html; charset=utf-8")
+
+
+@app.route("/assets/<path:filename>")
+def assets(filename):
+    if filename not in {"ui-enhancements.css", "ui-enhancements.js"}:
+        return jsonify(ok=False, error="Aset tidak ditemukan"), 404
+    return send_from_directory(STATIC_DIR, filename)
 
 
 @app.route("/api/upload", methods=["POST"])
