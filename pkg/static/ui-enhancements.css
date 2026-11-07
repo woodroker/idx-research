@@ -1,11 +1,16 @@
-/* Local dashboard polish: glass surfaces and box-only hover emphasis. */
-:root { --fx-glass: rgba(17, 22, 29, .72); --fx-glass-border: rgba(226, 235, 244, .12); }
+/* Local dashboard polish: glass surfaces; only linked cards receive hover lift. */
+:root { --fx-glass: rgba(17, 22, 29, .72); --fx-glass-border: rgba(226, 235, 244, .16); }
 html, body { overflow-x: hidden; }
 #sd { max-height: none !important; overflow-y: visible !important; }
 body.screener-modal-open { overflow: hidden !important; }
+
+/* Glass panels and cards. Keep visible borders and force square corners on box-like UI. */
 .cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf, .pn, #sg {
-  background-color: var(--fx-glass); border: 1px solid var(--fx-glass-border);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  background-color: var(--fx-glass);
+  border: 1px solid var(--fx-glass-border);
+  border-radius: 0 !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   box-shadow: 0 8px 26px rgba(0,0,0,.20);
 }
 .ov { overflow: hidden !important; padding: 10px 12px !important; }
@@ -13,16 +18,20 @@ body.screener-modal-open { overflow: hidden !important; }
 .pn { width:min(1120px,calc(100vw - 24px)) !important; max-width:none !important;
   height:calc(100dvh - 20px) !important; margin:0 !important; overflow:auto !important;
   overscroll-behavior:contain; box-shadow:-18px 0 60px rgba(0,0,0,.42); }
-/* Hover and lift apply to card/box surfaces only, never text links or inline menu buttons. */
-.cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf {
+
+/* No hover animation on plain information boxes. Only cards containing a real link lift. */
+.cd:has(a[href]), .k:has(a[href]), .rb:has(a[href]), .fu-c:has(a[href]),
+.fu-q:has(a[href]), .fu-w:has(a[href]), .fu-r:has(a[href]) {
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
-.cd:hover, .k:hover, .rb:hover, .fu-c:hover, .fu-q:hover, .fu-w:hover, .fu-r:hover,
-.tgb:hover, .upload-progress:hover, .yf:hover {
-  transform: translateY(-2px); border-color:rgba(45,212,191,.48);
-  box-shadow:0 10px 28px rgba(0,0,0,.25), 0 0 16px rgba(45,212,191,.08);
+.cd:has(a[href]):hover, .k:has(a[href]):hover, .rb:has(a[href]):hover,
+.fu-c:has(a[href]):hover, .fu-q:has(a[href]):hover, .fu-w:has(a[href]):hover,
+.fu-r:has(a[href]):hover {
+  transform: translateY(-2px);
+  border-color: rgba(45,212,191,.48);
+  box-shadow: 0 10px 28px rgba(0,0,0,.25), 0 0 16px rgba(45,212,191,.08);
 }
-/* Shareholder month selectors and linked names are text/navigation, not hover cards. */
+/* Shareholder months and linked names remain plain navigation/text, without lift or glow. */
 #pn .ms .btn, #pn a, #pn [data-h], #pn [data-hi], #pn [data-hn] {
   transform:none !important; box-shadow:none !important;
   transition:color .16s ease, background-color .16s ease, border-color .16s ease !important;
@@ -30,8 +39,7 @@ body.screener-modal-open { overflow: hidden !important; }
 #pn .ms .btn:hover, #pn a:hover, #pn [data-h]:hover, #pn [data-hi]:hover, #pn [data-hn]:hover {
   transform:none !important; box-shadow:none !important;
 }
-/* Keep ordinary controls usable without decorative lift. */
-button, .btn, select, .yf-go, #wl .wx { transition:color .16s ease, background-color .16s ease, border-color .16s ease; }
+button, .btn, select, .yf-go, #wl .wx { border-radius:0 !important; transition:color .16s ease, background-color .16s ease, border-color .16s ease; }
 #sg { animation:fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
 details > :not(summary) { transform-origin:top center; }
 details[open] > :not(summary) { animation:fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
@@ -50,25 +58,23 @@ details > summary { cursor:pointer; }
 #tb td.fx-decision { white-space:normal; min-width:122px; text-align:left; line-height:1.35; }
 #tb td.fx-decision small { display:block; font-size:8px; color:var(--mu); margin-top:2px; }
 #tb th.fx-decision-head { min-width:122px; text-align:left; }
-/* Bound classification labels, bars and values to independent columns. */
 #pn .cp { grid-template-columns:minmax(130px,190px) minmax(50px,1fr) 48px !important; gap:8px; min-width:0; width:100%; }
 #pn .cp > span { min-width:0; }
 #pn .cp > span:first-child { white-space:normal; overflow-wrap:anywhere; line-height:1.25; }
 #pn .cp .sb { display:block; width:100%; min-width:0; overflow:hidden; margin:0; }
 #pn .cp .sb i { max-width:100%; }
 #pn .cp > span:last-child { text-align:right; white-space:nowrap; }
-/* Remove the redundant heading above the combined BUY/HOLD/SELL/WAIT decision. */
-#pnDec .dh small { display:none !important; }
-/* Fundamental analysis keeps the box reveal/lift but has no visible border. */
+/* Keep Fundamental metric/analysis borders visible, square, and consistent. */
 #pnFund .fu-c, #pnFund .fu-q, #pnFund .fu-w, #pnFund .fu-r {
-  border-color: transparent !important;
-  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+  border: 1px solid var(--fx-glass-border) !important;
+  border-radius: 0 !important;
+  transform: none;
+  box-shadow: none;
 }
 #pnFund .fu-c:hover, #pnFund .fu-q:hover, #pnFund .fu-w:hover, #pnFund .fu-r:hover {
-  transform: translateY(-2px);
-  border-color: transparent !important;
-  box-shadow: 0 10px 28px rgba(0,0,0,.24), 0 0 18px rgba(45,212,191,.07);
+  transform:none; border-color:var(--fx-glass-border) !important; box-shadow:none;
 }
+#pnDec .dh small { display:none !important; }
 @media(max-width:620px) { #pn .cp { grid-template-columns:minmax(105px,38%) minmax(36px,1fr) 42px !important; gap:5px; } }
 @media(max-width:800px) { .ov{padding:0!important} .pn{width:100vw!important;height:100dvh!important} #pnDec .dcs{gap:8px} }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after {scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important} .fx-reveal{opacity:1;transform:none} }
