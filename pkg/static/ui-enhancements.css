@@ -1,15 +1,16 @@
-/* Progressive dashboard polish; the project has no Tailwind build, so this uses small local CSS animations. */
-:root { --fx-glass: rgba(17, 22, 29, .82); }
+/* Local dashboard polish: glass surfaces and restrained interaction states. */
+:root { --fx-glass: rgba(17, 22, 29, .72); --fx-glass-border: rgba(226, 235, 244, .12); }
 html, body { overflow-x: hidden; }
 #sd { max-height: none !important; overflow-y: visible !important; }
 body.screener-modal-open { overflow: hidden !important; }
-.cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf,
-.btn, select, input[type=text], .pn, #sg, .ptabs button, .fu-pill, .fu-t span,
-.fu-ck span, .dact, .sig, .yf-go, .wx { border-radius: 0 !important; }
-.cd, .k, .fu-c, .fu-q, .fu-r, .pn {
+
+/* Frosted glass for panels and cards. */
+.cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf, .pn, #sg {
   background-color: var(--fx-glass);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  border: 1px solid var(--fx-glass-border);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .20);
 }
 .ov { overflow: hidden !important; padding: 10px 12px !important; }
 .ov:not([hidden]) { display: flex !important; justify-content: flex-end; align-items: stretch; }
@@ -23,38 +24,54 @@ body.screener-modal-open { overflow: hidden !important; }
   overscroll-behavior: contain;
   box-shadow: -18px 0 60px rgba(0,0,0,.42);
 }
-.btn, button, select, .yf-go, #wl .wx {
+
+/* Keep static information boxes still; hover emphasis is only for links and controls. */
+.cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf {
+  transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+a, button, .btn, [role="button"], .yf-go, #wl .wx {
   transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease,
     background-color .2s ease, color .2s ease, opacity .2s ease;
 }
-.btn:hover, button:hover {
-  transform: translateY(-2px);
-  border-color: var(--ac) !important;
-  box-shadow: 0 5px 18px rgba(45,212,191,.13), 0 0 0 1px rgba(45,212,191,.12);
+a:hover, button:not(:disabled):hover, .btn:not(:disabled):hover,
+[role="button"]:hover, .yf-go:hover, #wl .wx:hover {
+  transform: translateY(-1px);
+  border-color: rgba(45,212,191,.58) !important;
+  box-shadow: 0 4px 16px rgba(45,212,191,.16), 0 0 0 1px rgba(45,212,191,.10);
 }
-.btn:active, button:active { transform: translateY(0) scale(.98); }
-.cd, .k, .fu-c, .fu-q, .fu-r { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-.cd:hover, .k:hover, .fu-c:hover, .fu-q:hover, .fu-r:hover {
-  border-color: rgba(45,212,191,.42);
-  box-shadow: 0 6px 24px rgba(0,0,0,.2), 0 0 16px rgba(45,212,191,.06);
+a:active, button:not(:disabled):active, .btn:not(:disabled):active, [role="button"]:active {
+  transform: translateY(0) scale(.985);
 }
-#sg { animation: fx-slide-down .2s cubic-bezier(.2,.8,.2,1) both; }
-/* Hover-open disclosure/dropdown panels. */
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+/* Buy/Sell/Hold labels only glow when their linked/clickable stock row is hovered. */
+tbody tr[data-c] .bt { transition: filter .18s ease, box-shadow .18s ease; }
+tbody tr[data-c]:hover .bt { filter: brightness(1.12); box-shadow: 0 0 12px rgba(45,212,191,.16); }
+select:hover { border-color: var(--bd); box-shadow: none; transform: none; }
+
+/* Fade and slide for disclosure/dropdown panels on hover or click. */
 details > :not(summary) { transform-origin: top center; }
 details[open] > :not(summary) { animation: fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
 details.fx-hover-closing > :not(summary) { animation: fx-dropdown-out .16s ease-in both; pointer-events: none; }
 details > summary { cursor: pointer; }
+#sg { animation: fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Tab/modal entrance and scroll reveal. */
 .fx-tab-enter { animation: fx-fade-in .32s ease-out both; }
 .fx-reveal { opacity: 0; transform: translateY(16px); transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
 .fx-reveal.fx-visible { opacity: 1; transform: translateY(0); }
 #pn.fx-modal-enter { animation: fx-slide-in-right .32s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes fx-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fx-slide-down { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fx-dropdown-in { from { opacity: 0; transform: translateY(-7px) scaleY(.98); } to { opacity: 1; transform: translateY(0) scaleY(1); } }
 @keyframes fx-dropdown-out { from { opacity: 1; transform: translateY(0) scaleY(1); } to { opacity: 0; transform: translateY(-5px) scaleY(.98); } }
 @keyframes fx-slide-in-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+
+/* Looping pump on projected candles. */
 .rvc { transform-box: fill-box; transform-origin: center bottom; animation: fx-candle-pump 1.8s ease-in-out infinite alternate; }
 @keyframes fx-candle-pump { from { transform: scaleY(.88); filter: brightness(.9); } to { transform: scaleY(1.12); filter: brightness(1.3); } }
+
 #tb td.fx-decision { white-space: normal; min-width: 122px; text-align: left; line-height: 1.35; }
 #tb td.fx-decision small { display:block; font-size:8px; color:var(--mu); margin-top:2px; }
 #tb th.fx-decision-head { min-width:122px; text-align:left; }
