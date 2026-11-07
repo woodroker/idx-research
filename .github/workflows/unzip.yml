@@ -1,27 +1,15 @@
-name: Unzip File Automatically
-
-on:
-  push:
-    paths:
-      - '*.zip' # Berjalan otomatis setiap ada file .zip baru yang di-push/upload
+name: Auto Unzip File
+on: [push]
 
 jobs:
-  unzip-process:
+  unzip:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Unzip the file
-        run: |
-          # Ganti 'screener_sqlite.zip' dengan nama file zip Anda jika berbeda
-          unzip -o screener_sqlite.zip -d ./extracted-files 
-          rm screener_sqlite.zip # Menghapus file zip asli agar repositori bersih
-
-      - name: Commit and Push Extracted Files
-        run: |
-          git config --global woodroker "github-actions[bot]"
-          git config --global tamankoma@gmail.com "41898282+github-actions[bot]@://github.com"
-          git add .
-          git commit -m "Automated unzip: Extracted files from zip" || echo "No changes to commit"
-          git push
+      - name: Extract ZIP File
+        uses: ihiroky/extract-action@v1
+        with:
+          file_path: screener_sqlite.zip
+          extract_dir: .
