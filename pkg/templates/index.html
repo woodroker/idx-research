@@ -136,12 +136,18 @@ button,.btn,.bt,.tc,.dact,.sig,.fu-pill,.fu-t span,.fu-ck span,.yf-go,.wx,.ptabs
 .fu-top{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch}.fu-top .fu-q{min-width:190px;display:flex;align-items:center}.fu-top .fu-r{display:flex;flex-direction:column;justify-content:center}.fu-top .fu-rb{margin:30px 0 8px}
 @media(max-width:620px){.fu-top{grid-template-columns:1fr}}
 .tgb{display:flex;align-items:center;gap:6px;margin-top:8px;padding:6px 8px;border:1px solid var(--bd);font-size:9px}.tgb .td{width:7px;height:7px;border-radius:50%;background:var(--mu);flex:none}.tgb.on .td{background:var(--up)}.tgb.err .td{background:var(--dn)}.tgb .tl{flex:1;color:var(--mu)}.tgb .ts{color:var(--mu)}.tgb .btn{font-size:9px;padding:2px 8px;text-transform:none;letter-spacing:0}
-</style></head><body>
+/* === Section heading system: konsisten main + panel detail === */
+#mn h3, #pn h3{display:flex;align-items:center;flex-wrap:wrap;column-gap:7px;row-gap:1px;font-size:10px!important;font-weight:600;letter-spacing:.09em;line-height:1.4;margin:16px 0 5px}
+#mn h3::before, #pn h3::before{content:"";flex:0 0 auto;width:3px;height:11px;border-radius:2px;background:var(--ac)}
+#mn h3 small, #pn h3 small{font-size:8px;font-weight:400;letter-spacing:.04em;color:var(--mu);text-transform:none}
+#pn h1{font-size:16px!important;letter-spacing:.02em;margin:0 0 2px}
+#bgt{font-size:10px}
+</style><script src="https://cdn.tailwindcss.com"></script></head><body>
 <div id="lay"><aside id="sd" class="cd"><div id="wl"><div class="tgh">Watchlist <small id="wlh"></small></div><div id="wll"></div><div class="wla"><input id="wli" list="wld" placeholder="kode, mis. BBCA" maxlength="6" autocomplete="off"><button class="btn" id="wlb">+</button></div><div class="mu" id="wlm" style="font-size:9px"></div><datalist id="wld"></datalist></div><div id="tg"></div><div id="yf" class="yf idle" title=""><div class="yf-top"><span class="yf-dot"></span><svg class="yf-pulse" viewBox="0 0 120 24" preserveAspectRatio="none"><path class="yf-base" d="M0 12H120"/><path class="yf-line" d="M0 12H22L27 12L31 3L36 21L41 8L45 12H70L75 12L79 5L84 19L89 10L93 12H120"/></svg><button class="yf-go" id="yfBtn" title="Update harga sekarang">⟳</button></div><div class="yf-bar"><i class="yf-up"></i><i class="yf-flat"></i><i class="yf-dn"></i></div><div class="yf-meta"><b class="up" id="yfAdv">0</b><small class="mu" id="yfT">--:--</small><b class="dn" id="yfDec">0</b></div><div class="yf-next"><i></i></div></div><div id="tgb" class="tgb"><span class="td"></span><span class="tl">Telegram</span><span class="ts"></span><button class="btn" id="tgT">Tes</button><button class="btn" id="tgO">OFF</button></div><div class="inp"><b>Input data</b><label class="btn" id="uploadBtn">⬆ Update data (xlsx / csv)<input id="f" type="file" multiple accept=".xlsx,.xls,.csv" hidden></label><div id="uploadProgress" class="upload-progress" hidden><div class="upload-progress-head"><span class="upload-spinner"></span><span id="uploadStatus">Menyiapkan upload…</span></div><div class="upload-track"><div class="upload-bar"></div></div></div><button class="btn" id="rld">↻ Reload data</button><button class="btn" id="rs">Muat ulang (DB)</button><div class="mu" id="log">Unggah file KSEI atau Ringkasan Saham IDX (.xlsx / .csv). Jenis dikenali otomatis, disimpan ke database SQLite; tanggal sama diperbarui.</div><div class="mu" id="cov"></div></div></aside><main id="mn"><h1>📈 Screener Akumulasi &amp; Distribusi <small style="font-weight:400;opacity:.55;font-size:11px">by Woodroker</small></h1>
 <div class="bar" id="tabs"><button class="btn on" data-v="1">Akumulasi KSEI</button><button class="btn" data-v="2" style="display:none">Day Trading</button><button class="btn" data-v="3">Rotasi Sektor</button><button class="btn" data-v="4">Buy / Sell</button></div><div id="v1"><div class="bar"><select id="w"><option value="0">Semua hari 5%</option><option value="10">10 hari terakhir</option><option value="5">5 hari terakhir</option></select>
 <select id="un"><option value="0">Satuan: saham</option><option value="1">Satuan: lot (100 saham)</option></select></div>
 <div class="grid" id="cards"></div>
-<div class="cd"><div class="bar"><h3 id="bgt" style="flex:1;margin:0">Breadth harian: jumlah saham net beli vs net jual (pemegang ≥5%)</h3><select id="bg"><option value="d">Harian</option><option value="w">Mingguan</option><option value="m">Bulanan</option><option value="y">Tahunan</option></select></div><div class="ch"><canvas id="c1"></canvas></div><small class="mu" id="bgn" style="font-size:8px;letter-spacing:.03em;text-transform:none;line-height:1.4"></small></div>
+<div class="cd"><div class="bar"><h3 id="bgt" style="flex:1;margin:0">Breadth harian</h3><select id="bg"><option value="d">Harian</option><option value="w">Mingguan</option><option value="m">Bulanan</option><option value="y">Tahunan</option></select></div><div class="ch"><canvas id="c1"></canvas></div><small class="mu" id="bgn" style="font-size:8px;letter-spacing:.03em;text-transform:none;line-height:1.4"></small></div>
 <div class="cd"><div class="bar"><input type="text" id="q" placeholder="Cari kode / emiten"><select id="tp"><option value="all">Periode: seluruh data</option><option value="d">Harian (hari terakhir)</option><option value="w">Mingguan (minggu terakhir)</option><option value="m">Bulanan (bulan terakhir)</option><option value="y">Tahunan (tahun terakhir)</option></select><button class="btn on" data-t="all">Semua</button><button class="btn" data-t="acc">Akumulasi</button><button class="btn" data-t="dist">Distribusi</button></div>
 <div class="bar"><select id="fi"><option value="">Institusi vs ritel: semua</option><option value="i">Institusi akumulasi, ritel lepas</option><option value="r">Ritel akumulasi, institusi lepas</option></select><select id="fa"><option value="">Asing: semua</option><option value="b">Asing net beli</option><option value="s">Asing net jual</option></select><select id="fk"><option value="">Konsistensi: semua</option><option value="b">Konsisten beli (≥70% hari)</option><option value="s">Konsisten jual (≥70% hari)</option></select></div>
 <div class="tw"><table><thead><tr><th data-s="c">Saham</th><th data-s="s">Skor</th><th data-s="net">Net 5%</th><th data-s="np">% saham</th><th data-s="hold" title="Pemegang aktif ≥5% + 1–5% pada data terbaru; yang sudah keluar tidak dihitung">Holder</th><th data-s="fnet">Asing</th><th data-s="rp">Net Rp</th><th data-s="px">Harga</th><th data-s="up">Hari naik/turun</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div>
@@ -163,8 +169,85 @@ button,.btn,.bt,.tc,.dact,.sig,.fu-pill,.fu-t span,.fu-ck span,.yf-go,.wx,.ptabs
 <li><b>Lonjakan value (20%)</b>: value hari ini vs rata² hari sebelumnya, searah dengan harga. <b>Ukuran transaksi (10%)</b>: rata² lot per transaksi vs biasanya (pemain besar). <b>Momentum (10%)</b>: perubahan harga vs hari-hari sebelumnya.</li>
 <li><b>Dini smart money</b>: value ≥ 1,5× rata² tetapi harga belum bergerak jauh (hari ini &lt; +3%, vs hari-hari sebelumnya &lt; +6%), dan minimal 3 dari 5 sinyal terpenuhi: lonjakan value, lot/transaksi ≥ 1,3×, asing net beli, bid dominan, close di sisi atas range. Ini indikasi awal, bukan kepastian mark up.</li>
 <li>Komponen tanpa data dikeluarkan dan bobot dinormalisasi. Skor ≥45 Akumulasi Kuat, ≥15 Akumulasi, ≤−15 Distribusi, ≤−45 Distribusi Kuat. Mode akumulasi: value, transaksi, dan net asing dijumlahkan sepanjang periode, skor = rata² skor harian, harga = perubahan sejak penutupan sebelum periode. Akurasi naik seiring bertambahnya hari data. Bukan rekomendasi investasi.</li></ul></details></div>
-<div id="v3" hidden><div class="cd"><div class="bar"><b style="flex:1;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.09em">PETA ROTASI SEKTOR · RS-RATIO vs RS-MOMENTUM</b><select id="rw"><option value="5">Window 5 hari</option><option value="10" selected>Window 10 hari</option><option value="20">Window 20 hari</option></select></div><div class="rg"><div id="rc"></div><div id="rl"></div></div></div>
-<details class="cd"><summary>Cara membaca peta rotasi</summary><ul style="font-size:9px"><li>Indeks tiap sektor dihitung dari saham di sektor itu, dibobot kapitalisasi (harga × saham beredar bebas) dari file Ringkasan Saham. Pembanding adalah seluruh pasar dari file yang sama.</li><li><b>RS-Ratio</b> (sumbu x): kekuatan relatif sektor vs pasar dibanding rata-ratanya dalam window. <b>RS-Momentum</b> (sumbu y): perubahan RS-Ratio 3 hari terakhir. Jejak = sepanjang window (5/10/20 hari) sampai hari terakhir, bisa diputar ulang atau digeser dengan slider. Klik sektor untuk menyorot.</li><li><b>⚡</b> muncul saat langkah RS-Ratio/Momentum melebihi rata² + 1 simpangan baku dari semua sektor, atau sektor pindah kuadran.</li><li>Memimpin (kuat &amp; menguat) → Melemah (kuat tapi melambat) → Tertinggal (lemah &amp; melemah) → Membaik (lemah tapi menguat), berputar searah jarum jam.</li><li>Pemetaan saham ke sektor saya susun manual untuk saham-saham yang umum, jadi perkiraan dan belum mencakup semua emiten. Saham tanpa pemetaan tidak masuk indeks sektor.</li></ul></details></div>
+<div id="v3" hidden>
+  <div class="mb-3 flex items-center justify-between gap-3">
+    <div>
+      <h3 class="font-semibold text-slate-100 text-sm mb-0.5">Peta Rotasi Sektor</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">Kinerja sektor berdasarkan pergerakan harga. Hover kartu untuk melihat detail. Animasi hanya lewat CSS hover, tanpa JavaScript.</p>
+    </div>
+    <select id="rw" class="bg-[#11161d] border border-slate-700 text-[#e6ebf0] text-xs rounded px-2.5 py-1.5 focus:outline-none focus:border-[#2dd4bf] focus:ring-1 focus:ring-[#2dd4bf]">
+      <option value="5">Window 5 hari</option>
+      <option value="10" selected>Window 10 hari</option>
+      <option value="20">Window 20 hari</option>
+    </select>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Perbankan</h4>
+      <p class="text-[10px] text-slate-500 mb-2">BMRI, BBRI, BBCA, BBNI</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+2.4%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 48%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[68%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Energi</h4>
+      <p class="text-[10px] text-slate-500 mb-2">MEDC, PTBA, ITMG, ADRO</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-1.1%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 52%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[42%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">BUMN</h4>
+      <p class="text-[10px] text-slate-500 mb-2">TLKM, EXCL, ISAT, FILM</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+0.8%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 55%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[61%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Properti</h4>
+      <p class="text-[10px] text-slate-500 mb-2">BSDE, SMRA, WPON, CTRA</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-0.6%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 58%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[38%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Industri</h4>
+      <p class="text-[10px] text-slate-500 mb-2">INDF, ICBP, MLBI, ROTI</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+1.3%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 62%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[72%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Pertambangan</h4>
+      <p class="text-[10px] text-slate-500 mb-2">ANTAM, INCO, NCKL, MDKA</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-2.0%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 65%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[28%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Kesehatan</h4>
+      <p class="text-[10px] text-slate-500 mb-2">KMTR, MIKA, HEAL, SIDO</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+0.4%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 51%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[54%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Teknologi</h4>
+      <p class="text-[10px] text-slate-500 mb-2">GOTO, BUKA, ELSA, AUTO</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+3.1%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 70%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[82%]"></div></div>
+    </div>
+    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      <h4 class="font-semibold text-slate-100 text-xs mb-1">Jasa</h4>
+      <p class="text-[10px] text-slate-500 mb-2">MAPA, ATRN, TSPC, EXCL</p>
+      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-0.9%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 47%</span></div>
+      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[34%]"></div></div>
+    </div>
+  </div>
+  <p class="mt-3 text-[10px] text-slate-600">Tidak ada animasi JavaScript — efek hover hanya CSS (translateY, border, shadow). Data contoh; ganti dengan data nyata dari API.</p>
+</div>
 <div id="v4" hidden><div class="grid" id="bc" style="margin-bottom:6px"></div><div class="cd" style="margin:16px 0 18px"><div class="bar" style="margin:0"><input type="text" id="bq" placeholder="Cari kode / emiten"><select id="bl"><option value="1e9">Value rata² ≥ Rp1 M</option><option value="1e10">Value rata² ≥ Rp10 M</option><option value="0">Semua likuiditas</option></select></div></div>
 <div class="cd" style="padding-top:16px">
 <div class="sl"><small class="mu">Rekomendasi</small><div class="slw"><output></output><input type="range" min="0" max="5" step="any" value="0" aria-label="Rekomendasi"><div class="sld"><i style="left:calc(8px + (100% - 16px) * 0.0000)"></i><i style="left:calc(8px + (100% - 16px) * 0.2000)"></i><i style="left:calc(8px + (100% - 16px) * 0.4000)"></i><i style="left:calc(8px + (100% - 16px) * 0.6000)"></i><i style="left:calc(8px + (100% - 16px) * 0.8000)"></i><i style="left:calc(8px + (100% - 16px) * 1.0000)"></i></div></div><div class="slb" hidden><button class="btn on" data-b="all">Semua</button><button class="btn" data-b="BUY">Buy</button><button class="btn" data-b="HOLD">Hold</button><button class="btn" data-b="WAIT">Wait</button><button class="btn" data-b="SELL">Sell</button><button class="btn" data-b="SPK">Lonjakan value</button><button class="btn" data-b="DINI">Dini smart money</button></div></div>
@@ -414,7 +497,7 @@ function run(){if(window.__wait)return;S=A();const{R,ds,td,sd,kd,M,da}=S,pd=Obje
  const K=(t,v,c='')=>`<div class="k"><small>${t}</small><b class="${c}">${v}</b></div>`;
  $('#cards').innerHTML=K('Saham dianalisis',R.length)+K('Akumulasi (≥15)',M.acc,'up')+K('Distribusi (≤−15)',M.dist,'dn')+K('Total Beli 5%',fm(M.buy).replace('+',''),'up')+K('Total Jual 5%',fm(-M.sell).replace('−',''),'dn')+K('Total Net semua saham',fm(M.net),cl(M.net))+K('Total Net asing',fm(M.fnet),cl(M.fnet))+K('Total Net Rp',fr(M.rp),cl(M.rp));
  const up=cs.getPropertyValue('--up'),dn=cs.getPropertyValue('--dn');
- const g=BGD(ds,M);$('#bgt').textContent='Breadth '+({d:'harian',w:'mingguan',m:'bulanan',y:'tahunan'}[BG])+': jumlah saham net beli vs net jual (pemegang ≥5%)';$('#bgn').textContent=BG==='d'?'':'Memakai seluruh data yang diunggah (tidak terpengaruh filter hari). Saham dihitung net beli/jual dari total periode'+(BG==='w'?'; label = Senin awal minggu.':'.');
+ const g=BGD(ds,M);$('#bgt').textContent='Breadth '+({d:'harian',w:'mingguan',m:'bulanan',y:'tahunan'}[BG]);$('#bgn').textContent='Jumlah saham net beli vs net jual (pemegang \u22655%)'+(BG==='d'?'':' \u00b7 Memakai seluruh data yang diunggah (tidak terpengaruh filter hari). Saham dihitung net beli/jual dari total periode'+(BG==='w'?'; label = Senin awal minggu.':'.'))
  mk('c1',{type:'line',data:{labels:g.L,datasets:[{label:'Selisih (beli − jual)',data:g.B.map(b=>b[0]-b[1]),borderColor:'#b45309',backgroundColor:'#b45309',borderWidth:.8,borderDash:[2,3],tension:.4,pointRadius:0,pointHoverRadius:3,order:0},{label:'Net beli',data:g.B.map(b=>b[0]),borderColor:up,backgroundColor:up,borderWidth:1.6,tension:.4,pointRadius:0,pointHoverRadius:3,order:1},{label:'Net jual',data:g.B.map(b=>b[1]),borderColor:dn,backgroundColor:dn,borderWidth:1.6,tension:.4,pointRadius:0,pointHoverRadius:3,order:2}]},plugins:[BFP],options:{interaction:{mode:'index',intersect:false},plugins:{tooltip:{itemSort:(a,b)=>a.datasetIndex-b.datasetIndex}},scales:{x:{ticks:{maxRotation:0,autoSkip:true}},y:{title:{display:true,text:'jumlah saham'}}}}});
  try{TGL()}catch(e){console.error(e)}try{BFX()}catch(e){}try{draw()}catch(e){console.error(e)}try{DR()}catch(e){console.error(e)}try{RR()}catch(e){console.error(e)}try{BR()}catch(e){console.error(e)}}
 /* animasi React: overlay di atas chart breadth (loop, tanpa tombol, efek saat garis beli/jual hampir bersentuhan) */
