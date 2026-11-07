@@ -3,8 +3,6 @@
 html, body { overflow-x: hidden; }
 #sd { max-height: none !important; overflow-y: visible !important; }
 body.screener-modal-open { overflow: hidden !important; }
-
-/* Frosted glass and thin visible edges. All box-like surfaces are square. */
 .cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf, .pn, #sg,
 #pnDec, #pnFund .fu-c, #pnFund .fu-q, #pnFund .fu-w, #pnFund .fu-r,
 #cards .k, #bc .k, #dc .k {
@@ -20,7 +18,7 @@ body.screener-modal-open { overflow: hidden !important; }
 #pn .ms .btn, #pn .sb, #pn .sb i { border-radius: 0 !important; }
 .ov { overflow: hidden !important; padding: 10px 12px !important; }
 .ov:not([hidden]) { display:flex !important; justify-content:flex-end; align-items:stretch; }
-.pn { width:min(1120px,calc(100vw - 24px)) !important; max-width:none !important;
+.pn { width:min(1400px,calc(100vw - 24px)) !important; max-width:none !important;
   height:calc(100dvh - 20px) !important; margin:0 !important; overflow:auto !important;
   overscroll-behavior:contain; box-shadow:-18px 0 60px rgba(0,0,0,.42); }
 
@@ -35,7 +33,6 @@ body.screener-modal-open { overflow: hidden !important; }
   box-shadow:0 8px 20px rgba(45,212,191,.16), 0 0 0 1px rgba(45,212,191,.12); filter:brightness(1.08);
 }
 #tabs .btn:active, button[data-v]:active, .btn[role="button"]:active { transform:translateY(0); }
-/* Plain content boxes and non-interactive text do not lift on hover. */
 .cd:hover, .k:hover, .rb:hover, .fu-c:hover, .fu-q:hover, .fu-w:hover, .fu-r:hover,
 .tgb:hover, .upload-progress:hover, .yf:hover { transform:none; }
 #pn .ms .btn, #pn a, #pn [data-h], #pn [data-hi], #pn [data-hn] {
@@ -45,7 +42,6 @@ body.screener-modal-open { overflow: hidden !important; }
 #pn .ms .btn:hover, #pn a:hover, #pn [data-h]:hover, #pn [data-hi]:hover, #pn [data-hn]:hover { transform:none !important; box-shadow:none !important; }
 select:hover { transform:none; box-shadow:none; }
 
-/* Dropdown and page transitions. */
 #sg { animation:fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
 details > :not(summary) { transform-origin:top center; }
 details[open] > :not(summary) { animation:fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
@@ -73,8 +69,28 @@ details > summary { cursor:pointer; }
 #tb td.fx-decision { white-space:normal; min-width:122px; text-align:left; line-height:1.35; }
 #tb td.fx-decision small { display:block; font-size:8px; color:var(--mu); margin-top:2px; }
 #tb th.fx-decision-head { min-width:122px; text-align:left; }
-/* Fundamental metric/analysis boxes keep their visible square borders. */
-#pnFund .fu-c, #pnFund .fu-q, #pnFund .fu-w, #pnFund .fu-r { border:1px solid var(--fx-glass-border) !important; border-radius:0 !important; }
+
+/* Fundamental metric/analysis boxes: restore clear edges while keeping square corners. */
+#pnFund .fu-c, #pnFund .fu-r {
+  background:#ffffff05 !important;
+  border:1px solid var(--bd) !important;
+  border-radius:0 !important;
+  box-shadow:none;
+}
+#pnFund .fu-q {
+  background:#ffffff05 !important;
+  border:1px solid var(--bd) !important;
+  border-left:3px solid var(--qc,var(--mu)) !important;
+  border-radius:0 !important;
+  box-shadow:none;
+}
+#pnFund .fu-w {
+  background:#f59e0b12 !important;
+  border:1px solid #f59e0b55 !important;
+  border-left:3px solid #f59e0b !important;
+  border-radius:0 !important;
+  box-shadow:none;
+}
 @media(max-width:620px) { #pn .cp { grid-template-columns:minmax(105px,38%) minmax(36px,1fr) 42px !important; gap:5px; } }
 @media(max-width:800px) { .ov{padding:0!important} .pn{width:100vw!important;height:100dvh!important} #pnDec .dcs{gap:8px} }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after {scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important} .fx-reveal{opacity:1;transform:none} }
