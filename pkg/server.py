@@ -12,7 +12,7 @@ import database, fundamentals, importer, live, parsers, store, telegram
 
 BASE = Path(__file__).resolve().parent
 TEMPLATE = BASE / "templates" / "index.html"
-DATA_DIR = BASE / "data"          # arsip CSV (cadangan mentah, BUKAN sumber kalkulasi)
+DATA_DIR = BASE / "data"
 UPLOAD_DIR = BASE / "uploads"
 STATIC_DIR = BASE / "static"
 DATA_DIR.mkdir(exist_ok=True)
@@ -28,7 +28,7 @@ _lock = threading.Lock()
 
 
 def csv_text_from_upload(file_storage):
-    """-> (nama_aman, teks CSV utf-8). XLSX/XLS dikonversi seperti sebelumnya (tanpa header sintetis)."""
+    """-> (nama_aman, teks CSV utf-8). XLSX/XLS dikonversi seperti sebelumnya."""
     name = secure_filename(file_storage.filename or "upload")
     suffix = Path(name).suffix.lower()
     raw = file_storage.read()
@@ -59,7 +59,6 @@ def process_file(f):
             why = "data >=1% rusak, dilewati: " + "; ".join(skipped) if skipped else "tidak ada baris data yang terbaca"
             return {"file": orig, "ok": False, "error": why}
         res = store.save_items(keep, name, origin="upload")
-        # arsip mentah (cadangan) - gagal menulis arsip tidak membatalkan penyimpanan database
         try:
             tgt = DATA_DIR / (Path(name).stem + ".csv")
             tmp = tgt.with_suffix(".csv.tmp")
@@ -75,7 +74,7 @@ def process_file(f):
         if warns:
             out["warnings"] = warns
         return out
-    except Exception as exc:                      # satu file gagal tidak menggagalkan file lain
+    except Exception as exc:
         return {"file": orig, "ok": False, "error": str(exc)}
 
 
@@ -100,16 +99,13 @@ def index():
     if not TEMPLATE.exists():
         return "templates/index.html tidak ditemukan.", 500
     html = TEMPLATE.read_text(encoding="utf-8")
-    # The React chart component reused the name RR of the normal render function, causing
-    # the runtime error "Cannot destructure property 'C'" when the app rendered its tab.
+    # Avoid collision between the radar chart component and the RR render routine.
     html = html.replace("var RR=({C})=>", "var RRComp=({C})=>")
     html = html.replace("RC.createElement(RR,{C:RXC})", "RC.createElement(RRComp,{C:RXC})")
-    css = '<link rel="stylesheet" href="/assets/ui-enhancements.css">'
-    js = '<script src="/assets/ui-enhancements.js" defer></script>'
     if "ui-enhancements.css" not in html:
-        html = html.replace("</head>", css + "</head>", 1)
+        html = html.replace("</head>", '<link rel="stylesheet" href="/assets/ui-enhancements.css"></head>', 1)
     if "ui-enhancements.js" not in html:
-        html = html.replace("</body>", js + "</body>", 1)
+        html = html.replace("</body>", '<script src="/assets/ui-enhancements.js" defer></script></body>', 1)
     return Response(html, mimetype="text/html; charset=utf-8")
 
 
@@ -154,7 +150,6 @@ def get_data():
 
 @app.route("/api/hc", methods=["POST"])
 def save_hc():
-    """Jumlah saham beredar per kode & tanggal yang diisi manual di dashboard (D.hc)."""
     body = request.get_json(silent=True) or {}
     data = body.get("data")
     if not isinstance(data, dict):
@@ -168,7 +163,6 @@ def save_hc():
 
 @app.route("/api/migrate/legacy", methods=["POST"])
 def migrate_legacy():
-    """Menerima isi IndexedDB lama (array {k,d,data}) dari browser. Default mode 'fill': tidak menimpa data yang sudah ada."""
     body = request.get_json(silent=True) or {}
     items, mode = body.get("items"), body.get("mode", "fill")
     if not isinstance(items, list) or mode not in ("fill", "replace"):
@@ -190,7 +184,6 @@ def migrate_legacy():
 
 @app.route("/api/live/update", methods=["POST"])
 def live_update():
-    """Perbarui px dari yfinance sekarang (manual). Aturan pengaman ada di live.py."""
     res = live.update()
     return jsonify(res), (200 if res.get("ok") else 502)
 
@@ -233,7 +226,6 @@ def wl_del(code):
 
 @app.route("/api/fundamental/<code>")
 def fundamental(code):
-    """Fundamental per emiten dari yfinance (cache 12 jam di SQLite). PER/PBV dihitung dgn harga terakhir di database."""
     import re
     code = code.upper()
     if not re.fullmatch(r"[A-Z0-9]{2,6}", code):
@@ -321,7 +313,6 @@ def reload_data():
 
 @app.route("/api/reset", methods=["POST"])
 def reset_uploads():
-    # Tidak menyentuh screener.db maupun arsip data/. Hanya membersihkan folder uploads sementara.
     for p in UPLOAD_DIR.iterdir():
         if p.is_file():
             p.unlink()

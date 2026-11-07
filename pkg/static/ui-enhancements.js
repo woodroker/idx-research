@@ -1,7 +1,41 @@
 (() => {
   'use strict';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   let revealObserver;
+  const dropdownTimers = new WeakMap();
+
+  function bindHoverDropdown(details) {
+    if (!canHover || details.dataset.fxHoverBound) return;
+    details.dataset.fxHoverBound = '1';
+    details.addEventListener('mouseenter', () => {
+      clearTimeout(dropdownTimers.get(details));
+      details.classList.remove('fx-hover-closing');
+      if (!details.open) {
+        details.open = true;
+        details.dataset.fxOpenedByHover = '1';
+      }
+    });
+    details.addEventListener('mouseleave', () => {
+      if (!details.open || !details.dataset.fxOpenedByHover) return;
+      clearTimeout(dropdownTimers.get(details));
+      dropdownTimers.set(details, setTimeout(() => {
+        details.classList.add('fx-hover-closing');
+        dropdownTimers.set(details, setTimeout(() => {
+          details.open = false;
+          details.classList.remove('fx-hover-closing');
+          delete details.dataset.fxOpenedByHover;
+        }, reduceMotion ? 0 : 160));
+      }, reduceMotion ? 0 : 90));
+    });
+    details.addEventListener('click', event => {
+      if (event.target.closest('summary')) delete details.dataset.fxOpenedByHover;
+    });
+  }
+  function scanDropdowns(root = document) {
+    if (root instanceof HTMLDetailsElement) bindHoverDropdown(root);
+    root.querySelectorAll?.('details').forEach(bindHoverDropdown);
+  }
 
   function scanReveal(root = document) {
     if (reduceMotion) return;
@@ -26,9 +60,10 @@
       }
     }, { threshold: .08, rootMargin: '0px 0px -24px 0px' });
   }
+  scanDropdowns();
   scanReveal();
   new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => {
-    if (node.nodeType === Node.ELEMENT_NODE) scanReveal(node);
+    if (node.nodeType === Node.ELEMENT_NODE) { scanDropdowns(node); scanReveal(node); }
   }))).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener('click', event => {
@@ -40,12 +75,6 @@
         void view.offsetWidth;
         view.classList.add('fx-tab-enter');
       }
-    }
-    const panel = event.target.closest('#pn');
-    if (panel && !reduceMotion && panel.classList.contains('fx-modal-enter')) {
-      panel.classList.remove('fx-modal-enter');
-      void panel.offsetWidth;
-      panel.classList.add('fx-modal-enter');
     }
   });
 
@@ -59,7 +88,6 @@
   if (overlay) modalObserver.observe(overlay, { attributes: true, attributeFilter: ['hidden'] });
 
   // Add a contextual combined-decision/market-phase column using existing calculations only.
-  // Phase is shown for context and does not change the existing model formula or thresholds.
   function decorateAccumulationTable() {
     const body = document.getElementById('tb');
     const table = body?.closest('table');
@@ -84,12 +112,9 @@
         const phaseLabel = phase?.p && window.PCC?.ph?.[phase.p]?.[0] ? window.PCC.ph[phase.p][0] : '—';
         cell.innerHTML = `<b style="color:${tone[decision.act] || 'inherit'}">${decision.act} · ${decision.K == null ? '—' : Math.round(decision.K)}</b><small>Fase pasar: ${phaseLabel}</small>`;
         cell.title = (decision.why || '') + ' · Fase pasar hanya konteks, tidak mengubah rumus keputusan.';
-      } catch (_) {
-        cell.textContent = '—';
-      }
+      } catch (_) { cell.textContent = '—'; }
     }
   }
-
   function attachTableRefresh() {
     try {
       const original = window.draw;

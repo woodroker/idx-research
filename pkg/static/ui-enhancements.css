@@ -1,17 +1,11 @@
 /* Progressive dashboard polish; the project has no Tailwind build, so this uses small local CSS animations. */
 :root { --fx-glass: rgba(17, 22, 29, .82); }
-
-/* Keep the document as the only page-level vertical scroller. The stock detail overlay owns its own scroll. */
 html, body { overflow-x: hidden; }
 #sd { max-height: none !important; overflow-y: visible !important; }
 body.screener-modal-open { overflow: hidden !important; }
-
-/* Square UI surfaces; preserve intentionally round chart dots and status indicators. */
 .cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf,
 .btn, select, input[type=text], .pn, #sg, .ptabs button, .fu-pill, .fu-t span,
 .fu-ck span, .dact, .sig, .yf-go, .wx { border-radius: 0 !important; }
-
-/* Subtle frosted surfaces and responsive right-side detail panel. */
 .cd, .k, .fu-c, .fu-q, .fu-r, .pn {
   background-color: var(--fx-glass);
   -webkit-backdrop-filter: blur(12px);
@@ -29,8 +23,6 @@ body.screener-modal-open { overflow: hidden !important; }
   overscroll-behavior: contain;
   box-shadow: -18px 0 60px rgba(0,0,0,.42);
 }
-
-/* Hover lift, border glow and smooth interactions. */
 .btn, button, select, .yf-go, #wl .wx {
   transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease,
     background-color .2s ease, color .2s ease, opacity .2s ease;
@@ -47,26 +39,25 @@ body.screener-modal-open { overflow: hidden !important; }
   box-shadow: 0 6px 24px rgba(0,0,0,.2), 0 0 16px rgba(45,212,191,.06);
 }
 #sg { animation: fx-slide-down .2s cubic-bezier(.2,.8,.2,1) both; }
-
-/* Tailwind-like fade/slide entrance utilities, implemented locally without a CDN dependency. */
+/* Hover-open disclosure/dropdown panels. */
+details > :not(summary) { transform-origin: top center; }
+details[open] > :not(summary) { animation: fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
+details.fx-hover-closing > :not(summary) { animation: fx-dropdown-out .16s ease-in both; pointer-events: none; }
+details > summary { cursor: pointer; }
 .fx-tab-enter { animation: fx-fade-in .32s ease-out both; }
 .fx-reveal { opacity: 0; transform: translateY(16px); transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
 .fx-reveal.fx-visible { opacity: 1; transform: translateY(0); }
 #pn.fx-modal-enter { animation: fx-slide-in-right .32s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes fx-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fx-fade-down { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fx-slide-down { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fx-dropdown-in { from { opacity: 0; transform: translateY(-7px) scaleY(.98); } to { opacity: 1; transform: translateY(0) scaleY(1); } }
+@keyframes fx-dropdown-out { from { opacity: 1; transform: translateY(0) scaleY(1); } to { opacity: 0; transform: translateY(-5px) scaleY(.98); } }
 @keyframes fx-slide-in-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
-
-/* Looping, restrained pump on the projected candles in the reverse-engineering chart. */
 .rvc { transform-box: fill-box; transform-origin: center bottom; animation: fx-candle-pump 1.8s ease-in-out infinite alternate; }
 @keyframes fx-candle-pump { from { transform: scaleY(.88); filter: brightness(.9); } to { transform: scaleY(1.12); filter: brightness(1.3); } }
-
-/* Compact, readable combined-decision and market-phase column on the accumulation table. */
 #tb td.fx-decision { white-space: normal; min-width: 122px; text-align: left; line-height: 1.35; }
 #tb td.fx-decision small { display:block; font-size:8px; color:var(--mu); margin-top:2px; }
 #tb th.fx-decision-head { min-width:122px; text-align:left; }
-
 @media (max-width: 800px) {
   .ov { padding: 0 !important; }
   .pn { width: 100vw !important; height: 100dvh !important; }
