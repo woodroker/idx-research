@@ -172,8 +172,8 @@ button,.btn,.bt,.tc,.dact,.sig,.fu-pill,.fu-t span,.fu-ck span,.yf-go,.wx,.ptabs
 <div id="v3" hidden>
   <div class="mb-3 flex items-center justify-between gap-3">
     <div>
-      <h3 class="font-semibold text-slate-100 text-sm mb-0.5">Peta Rotasi Sektor</h3>
-      <p class="text-xs text-slate-500 leading-relaxed">Kinerja sektor berdasarkan pergerakan harga. Hover kartu untuk melihat detail. Animasi hanya lewat CSS hover, tanpa JavaScript.</p>
+      <h3 class="font-semibold text-slate-100 text-sm mb-0.5">Grafik Kuadran Sektor</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">RS-Ratio vs RS-Momentum. Setiap titik = satu sektor. Hover titik untuk melihat nama sektor. Animasi hanya CSS hover, tanpa JavaScript.</p>
     </div>
     <select id="rw" class="bg-[#11161d] border border-slate-700 text-[#e6ebf0] text-xs rounded px-2.5 py-1.5 focus:outline-none focus:border-[#2dd4bf] focus:ring-1 focus:ring-[#2dd4bf]">
       <option value="5">Window 5 hari</option>
@@ -181,72 +181,51 @@ button,.btn,.bt,.tc,.dact,.sig,.fu-pill,.fu-t span,.fu-ck span,.yf-go,.wx,.ptabs
       <option value="20">Window 20 hari</option>
     </select>
   </div>
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Perbankan</h4>
-      <p class="text-[10px] text-slate-500 mb-2">BMRI, BBRI, BBCA, BBNI</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+2.4%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 48%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[68%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Energi</h4>
-      <p class="text-[10px] text-slate-500 mb-2">MEDC, PTBA, ITMG, ADRO</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-1.1%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 52%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[42%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">BUMN</h4>
-      <p class="text-[10px] text-slate-500 mb-2">TLKM, EXCL, ISAT, FILM</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+0.8%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 55%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[61%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Properti</h4>
-      <p class="text-[10px] text-slate-500 mb-2">BSDE, SMRA, WPON, CTRA</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-0.6%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 58%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[38%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Industri</h4>
-      <p class="text-[10px] text-slate-500 mb-2">INDF, ICBP, MLBI, ROTI</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+1.3%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 62%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[72%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Pertambangan</h4>
-      <p class="text-[10px] text-slate-500 mb-2">ANTAM, INCO, NCKL, MDKA</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-2.0%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 65%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[28%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#2dd4bf]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Kesehatan</h4>
-      <p class="text-[10px] text-slate-500 mb-2">KMTR, MIKA, HEAL, SIDO</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+0.4%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 51%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[54%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Teknologi</h4>
-      <p class="text-[10px] text-slate-500 mb-2">GOTO, BUKA, ELSA, AUTO</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">+3.1%</span><span class="text-[10px] text-[#2dd4bf] ml-0.5">▲ 70%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#2dd4bf] h-full w-[82%]"></div></div>
-    </div>
-    <div class="bg-[#11161d] border border-slate-700 rounded-xl p-3 group relative overflow-hidden transition-all duration-200 ease-in-out cursor-default">
-      <div class="absolute inset-0 bg-gradient-to-t from-[#f0544f]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-      <h4 class="font-semibold text-slate-100 text-xs mb-1">Jasa</h4>
-      <p class="text-[10px] text-slate-500 mb-2">MAPA, ATRN, TSPC, EXCL</p>
-      <div class="flex items-baseline gap-1 mb-2"><span class="text-base font-bold text-white leading-none">-0.9%</span><span class="text-[10px] text-[#f0544f] ml-0.5">▼ 47%</span></div>
-      <div class="w-full bg-[#202833] rounded-full h-[5px] overflow-hidden"><div class="bg-[#f0544f] h-full w-[34%]"></div></div>
-    </div>
+  <div class="w-full max-w-[640px] mx-auto relative">
+    <svg viewBox="0 0 700 500" class="w-full h-[430px] block" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <style>
+          .sector-dot { cursor: default; transition: r 0.18s ease, stroke 0.18s ease, fill 0.18s ease; }
+          .sector-dot:hover { r: 6.5; stroke: #ffffff; stroke-width: 2; filter: drop-shadow(0 0 8px rgba(45,212,191,0.45)); }
+          .quad-label { font: 600 10px 'JetBrains Mono', monospace; pointer-events: none; }
+          .axis-line { stroke: #202833; stroke-width: 1; }
+          .sector-label { font: 600 8px 'JetBrains Mono', monospace; pointer-events: none; }
+        </style>
+      </defs>
+      <rect x="350" y="0" width="350" height="250" fill="#2dd4bf08"/>
+      <rect x="350" y="250" width="350" height="250" fill="#f59e0b08"/>
+      <rect x="0" y="250" width="350" height="250" fill="#f0544f08"/>
+      <rect x="0" y="0" width="350" height="250" fill="#3b82f608"/>
+      <line x1="350" y1="0" x2="350" y2="500" class="axis-line"/>
+      <line x1="0" y1="250" x2="700" y2="250" class="axis-line"/>
+      <line x1="350" y1="250" x2="350" y2="256" stroke="#2dd4bf" stroke-width="2"/>
+      <text x="605" y="30" class="quad-label fill-[#2dd4bf]">Memimpin (kuat &amp; menguat)</text>
+      <text x="605" y="478" class="quad-label fill-[#f59e0b]">Melemah (kuat tapi melambat)</text>
+      <text x="15" y="478" class="quad-label fill-[#f0544f]">Tertinggal (lemah &amp; melemah)</text>
+      <text x="15" y="30" class="quad-label fill-[#3b82f6]">Membaik (lemah tapi menguat)</text>
+      <text x="675" y="490" class="quad-label fill-slate-500" text-anchor="end">RS-Ratio &rarr;</text>
+      <text x="5" y="40" class="quad-label fill-slate-500" text-anchor="start">&uarr; RS-Momentum</text>
+      <g class="sector-dot" transform="translate(665,10)"><title>Teknologi · RR 118 · RM +12</title><circle r="5" fill="#2dd4bf"/></g>
+      <text x="672" y="6" class="sector-label fill-slate-400">Teknologi</text>
+      <g class="sector-dot" transform="translate(560,110)"><title>Perbankan · RR 112 · RM +7</title><circle r="5" fill="#2dd4bf"/></g>
+      <text x="567" y="106" class="sector-label fill-slate-400">Perbankan</text>
+      <g class="sector-dot" transform="translate(455,170)"><title>Industri · RR 106 · RM +4</title><circle r="5" fill="#2dd4bf"/></g>
+      <text x="462" y="166" class="sector-label fill-slate-400">Industri</text>
+      <g class="sector-dot" transform="translate(368,230)"><title>BUMN · RR 101 · RM +1</title><circle r="5" fill="#2dd4bf"/></g>
+      <text x="375" y="226" class="sector-label fill-slate-400">BUMN</text>
+      <g class="sector-dot" transform="translate(298,190)"><title>Kesehatan · RR 97 · RM +3</title><circle r="5" fill="#3b82f6"/></g>
+      <text x="291" y="186" class="sector-label fill-slate-400" text-anchor="end">Kesehatan</text>
+      <g class="sector-dot" transform="translate(263,270)"><title>Properti · RR 95 · RM -1</title><circle r="5" fill="#f0544f"/></g>
+      <text x="256" y="276" class="sector-label fill-slate-400" text-anchor="end">Properti</text>
+      <g class="sector-dot" transform="translate(210,290)"><title>Jasa · RR 92 · RM -2</title><circle r="5" fill="#f0544f"/></g>
+      <text x="203" y="296" class="sector-label fill-slate-400" text-anchor="end">Jasa</text>
+      <g class="sector-dot" transform="translate(420,310)"><title>Energi · RR 104 · RM -3</title><circle r="5" fill="#f59e0b"/></g>
+      <text x="427" y="316" class="sector-label fill-slate-400">Energi</text>
+      <g class="sector-dot" transform="translate(105,370)"><title>Pertambangan · RR 86 · RM -6</title><circle r="5" fill="#f0544f"/></g>
+      <text x="98" y="376" class="sector-label fill-slate-400" text-anchor="end">Pertambangan</text>
+    </svg>
+    <p class="mt-2 text-[10px] text-slate-600 text-center">Hijau = Memimpin, biru = Membaik, oranye = Melemah, merah = Tertinggal. Data contoh; diisi dari API Ringkasan Saham nanti.</p>
   </div>
-  <p class="mt-3 text-[10px] text-slate-600">Tidak ada animasi JavaScript — efek hover hanya CSS (translateY, border, shadow). Data contoh; ganti dengan data nyata dari API.</p>
 </div>
 <div id="v4" hidden><div class="grid" id="bc" style="margin-bottom:6px"></div><div class="cd" style="margin:16px 0 18px"><div class="bar" style="margin:0"><input type="text" id="bq" placeholder="Cari kode / emiten"><select id="bl"><option value="1e9">Value rata² ≥ Rp1 M</option><option value="1e10">Value rata² ≥ Rp10 M</option><option value="0">Semua likuiditas</option></select></div></div>
 <div class="cd" style="padding-top:16px">
