@@ -1,86 +1,62 @@
-/* Local dashboard polish: glass surfaces and restrained interaction states. */
+/* Local dashboard polish: glass surfaces and box-only hover emphasis. */
 :root { --fx-glass: rgba(17, 22, 29, .72); --fx-glass-border: rgba(226, 235, 244, .12); }
 html, body { overflow-x: hidden; }
 #sd { max-height: none !important; overflow-y: visible !important; }
 body.screener-modal-open { overflow: hidden !important; }
-
-/* Frosted glass for panels and cards. */
 .cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf, .pn, #sg {
-  background-color: var(--fx-glass);
-  border: 1px solid var(--fx-glass-border);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, .20);
+  background-color: var(--fx-glass); border: 1px solid var(--fx-glass-border);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: 0 8px 26px rgba(0,0,0,.20);
 }
 .ov { overflow: hidden !important; padding: 10px 12px !important; }
-.ov:not([hidden]) { display: flex !important; justify-content: flex-end; align-items: stretch; }
-.pn {
-  width: min(1120px, calc(100vw - 24px)) !important;
-  max-width: none !important;
-  height: calc(100dvh - 20px) !important;
-  margin: 0 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior: contain;
-  box-shadow: -18px 0 60px rgba(0,0,0,.42);
-}
-
-/* Keep static information boxes still; hover emphasis is only for links and controls. */
+.ov:not([hidden]) { display:flex !important; justify-content:flex-end; align-items:stretch; }
+.pn { width:min(1120px,calc(100vw - 24px)) !important; max-width:none !important;
+  height:calc(100dvh - 20px) !important; margin:0 !important; overflow:auto !important;
+  overscroll-behavior:contain; box-shadow:-18px 0 60px rgba(0,0,0,.42); }
+/* Hover and lift apply to card/box surfaces only, never text links or inline menu buttons. */
 .cd, .k, .rb, .fu-c, .fu-q, .fu-w, .fu-r, .tgb, .upload-progress, .yf {
-  transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
-a, button, .btn, [role="button"], .yf-go, #wl .wx {
-  transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease,
-    background-color .2s ease, color .2s ease, opacity .2s ease;
+.cd:hover, .k:hover, .rb:hover, .fu-c:hover, .fu-q:hover, .fu-w:hover, .fu-r:hover,
+.tgb:hover, .upload-progress:hover, .yf:hover {
+  transform: translateY(-2px); border-color:rgba(45,212,191,.48);
+  box-shadow:0 10px 28px rgba(0,0,0,.25), 0 0 16px rgba(45,212,191,.08);
 }
-a:hover, button:not(:disabled):hover, .btn:not(:disabled):hover,
-[role="button"]:hover, .yf-go:hover, #wl .wx:hover {
-  transform: translateY(-1px);
-  border-color: rgba(45,212,191,.58) !important;
-  box-shadow: 0 4px 16px rgba(45,212,191,.16), 0 0 0 1px rgba(45,212,191,.10);
+/* Shareholder month selectors and linked names are text/navigation, not hover cards. */
+#pn .ms .btn, #pn a, #pn [data-h], #pn [data-hi], #pn [data-hn] {
+  transform:none !important; box-shadow:none !important;
+  transition:color .16s ease, background-color .16s ease, border-color .16s ease !important;
 }
-a:active, button:not(:disabled):active, .btn:not(:disabled):active, [role="button"]:active {
-  transform: translateY(0) scale(.985);
+#pn .ms .btn:hover, #pn a:hover, #pn [data-h]:hover, #pn [data-hi]:hover, #pn [data-hn]:hover {
+  transform:none !important; box-shadow:none !important;
 }
-a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
-  outline: 2px solid var(--ac);
-  outline-offset: 2px;
-}
-/* Buy/Sell/Hold labels only glow when their linked/clickable stock row is hovered. */
-tbody tr[data-c] .bt { transition: filter .18s ease, box-shadow .18s ease; }
-tbody tr[data-c]:hover .bt { filter: brightness(1.12); box-shadow: 0 0 12px rgba(45,212,191,.16); }
-select:hover { border-color: var(--bd); box-shadow: none; transform: none; }
-
-/* Fade and slide for disclosure/dropdown panels on hover or click. */
-details > :not(summary) { transform-origin: top center; }
-details[open] > :not(summary) { animation: fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
-details.fx-hover-closing > :not(summary) { animation: fx-dropdown-out .16s ease-in both; pointer-events: none; }
-details > summary { cursor: pointer; }
-#sg { animation: fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
-
-/* Tab/modal entrance and scroll reveal. */
-.fx-tab-enter { animation: fx-fade-in .32s ease-out both; }
-.fx-reveal { opacity: 0; transform: translateY(16px); transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1); }
-.fx-reveal.fx-visible { opacity: 1; transform: translateY(0); }
-#pn.fx-modal-enter { animation: fx-slide-in-right .32s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes fx-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fx-dropdown-in { from { opacity: 0; transform: translateY(-7px) scaleY(.98); } to { opacity: 1; transform: translateY(0) scaleY(1); } }
-@keyframes fx-dropdown-out { from { opacity: 1; transform: translateY(0) scaleY(1); } to { opacity: 0; transform: translateY(-5px) scaleY(.98); } }
-@keyframes fx-slide-in-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
-
-/* Looping pump on projected candles. */
-.rvc { transform-box: fill-box; transform-origin: center bottom; animation: fx-candle-pump 1.8s ease-in-out infinite alternate; }
-@keyframes fx-candle-pump { from { transform: scaleY(.88); filter: brightness(.9); } to { transform: scaleY(1.12); filter: brightness(1.3); } }
-
-#tb td.fx-decision { white-space: normal; min-width: 122px; text-align: left; line-height: 1.35; }
+/* Keep ordinary controls usable without decorative lift. */
+button, .btn, select, .yf-go, #wl .wx { transition:color .16s ease, background-color .16s ease, border-color .16s ease; }
+#sg { animation:fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
+details > :not(summary) { transform-origin:top center; }
+details[open] > :not(summary) { animation:fx-dropdown-in .2s cubic-bezier(.2,.8,.2,1) both; }
+details.fx-hover-closing > :not(summary) { animation:fx-dropdown-out .16s ease-in both; pointer-events:none; }
+details > summary { cursor:pointer; }
+.fx-tab-enter { animation:fx-fade-in .32s ease-out both; }
+.fx-reveal { opacity:0; transform:translateY(16px); transition:opacity .55s ease,transform .55s cubic-bezier(.2,.8,.2,1); }
+.fx-reveal.fx-visible { opacity:1; transform:translateY(0); }
+#pn.fx-modal-enter { animation:fx-slide-in-right .32s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes fx-fade-in { from{opacity:0} to{opacity:1} }
+@keyframes fx-dropdown-in { from{opacity:0;transform:translateY(-7px) scaleY(.98)} to{opacity:1;transform:translateY(0) scaleY(1)} }
+@keyframes fx-dropdown-out { from{opacity:1;transform:translateY(0) scaleY(1)} to{opacity:0;transform:translateY(-5px) scaleY(.98)} }
+@keyframes fx-slide-in-right { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+.rvc { transform-box:fill-box; transform-origin:center bottom; animation:fx-candle-pump 1.8s ease-in-out infinite alternate; }
+@keyframes fx-candle-pump { from{transform:scaleY(.88);filter:brightness(.9)} to{transform:scaleY(1.12);filter:brightness(1.3)} }
+#tb td.fx-decision { white-space:normal; min-width:122px; text-align:left; line-height:1.35; }
 #tb td.fx-decision small { display:block; font-size:8px; color:var(--mu); margin-top:2px; }
 #tb th.fx-decision-head { min-width:122px; text-align:left; }
-@media (max-width: 800px) {
-  .ov { padding: 0 !important; }
-  .pn { width: 100vw !important; height: 100dvh !important; }
-  #pnDec .dcs { gap: 8px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .fx-reveal { opacity:1; transform:none; }
-}
+/* Bound classification labels, bars and values to independent columns. */
+#pn .cp { grid-template-columns:minmax(130px,190px) minmax(50px,1fr) 48px !important; gap:8px; min-width:0; width:100%; }
+#pn .cp > span { min-width:0; }
+#pn .cp > span:first-child { white-space:normal; overflow-wrap:anywhere; line-height:1.25; }
+#pn .cp .sb { display:block; width:100%; min-width:0; overflow:hidden; margin:0; }
+#pn .cp .sb i { max-width:100%; }
+#pn .cp > span:last-child { text-align:right; white-space:nowrap; }
+@media(max-width:620px) { #pn .cp { grid-template-columns:minmax(105px,38%) minmax(36px,1fr) 42px !important; gap:5px; } }
+@media(max-width:800px) { .ov{padding:0!important} .pn{width:100vw!important;height:100dvh!important} #pnDec .dcs{gap:8px} }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after {scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important} .fx-reveal{opacity:1;transform:none} }
