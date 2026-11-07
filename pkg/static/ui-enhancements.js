@@ -16,7 +16,6 @@
     [/^foreign\s+investment\s+advis/i, 'Asing · Penasihat Investasi'],
     [/^foreign\s+commanditaire\s+ve/i, 'Asing · Persekutuan Komanditer']
   ];
-
   function formatInvestorLabel(label) {
     const clean = label.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
     for (const [pattern, text] of investorNames) {
@@ -27,7 +26,6 @@
     }
     return clean.replace(/\b(Local|Foreign)\b/i, word => word.toLowerCase() === 'local' ? 'Lokal' : 'Asing');
   }
-
   function fixInvestorComposition(root = document) {
     const headings = [];
     if (root instanceof Element && root.matches('#pn h3')) headings.push(root);
@@ -40,15 +38,13 @@
           const label = node.querySelector(':scope > span:first-child');
           if (label && label.dataset.fxLabelDone !== '1') {
             label.textContent = formatInvestorLabel(label.textContent);
-            label.dataset.fxLabelDone = '1';
-            label.title = label.textContent;
+            label.dataset.fxLabelDone = '1'; label.title = label.textContent;
           }
         }
         node = node.nextElementSibling;
       }
     }
   }
-
   function bindHoverDropdown(details) {
     if (!canHover || details.dataset.fxHoverBound) return;
     details.dataset.fxHoverBound = '1';
@@ -67,11 +63,8 @@
         }, reduceMotion ? 0 : 160));
       }, reduceMotion ? 0 : 90));
     });
-    details.addEventListener('click', event => {
-      if (event.target.closest('summary')) delete details.dataset.fxOpenedByHover;
-    });
+    details.addEventListener('click', event => { if (event.target.closest('summary')) delete details.dataset.fxOpenedByHover; });
   }
-
   function scan(root = document) {
     if (root instanceof HTMLDetailsElement) bindHoverDropdown(root);
     root.querySelectorAll?.('details').forEach(bindHoverDropdown);
@@ -97,7 +90,6 @@
   new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => {
     if (node.nodeType === Node.ELEMENT_NODE) { scan(node); scanReveal(node); }
   }))).observe(document.body, { childList:true, subtree:true });
-
   document.addEventListener('click', event => {
     const tab = event.target.closest('[data-v]');
     if (tab && !reduceMotion) {
@@ -111,11 +103,8 @@
     document.body.classList.toggle('screener-modal-open', open);
     if (open) document.getElementById('pn')?.classList.add('fx-modal-enter');
   }).observe(overlay, { attributes:true, attributeFilter:['hidden'] });
-
   function decorateAccumulationTable() {
-    const body = document.getElementById('tb');
-    const table = body?.closest('table');
-    const head = table?.querySelector('thead tr');
+    const body = document.getElementById('tb'), table = body?.closest('table'), head = table?.querySelector('thead tr');
     if (!body || !head || typeof window.KEP !== 'function') return;
     let th = head.querySelector('[data-fx-decision]');
     if (!th) { th = document.createElement('th'); th.className='fx-decision-head'; th.dataset.fxDecision='1'; th.textContent='Keputusan gabungan'; head.append(th); }
@@ -138,6 +127,10 @@
     const wrapped = function (...args) { const result=original.apply(this,args); decorateAccumulationTable(); return result; };
     wrapped.__fxWrapped=true; window.draw=wrapped;
   }
+  // Rebrand browser tab and visible dashboard heading without replacing the large HTML template.
+  document.title = 'IDX Research';
+  const title = document.querySelector('#mn > h1');
+  if (title) title.textContent = 'IDX Research';
   attachTableRefresh();
   setInterval(() => { attachTableRefresh(); decorateAccumulationTable(); fixInvestorComposition(document); }, 5000);
 })();
