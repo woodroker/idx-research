@@ -57,6 +57,18 @@ details > summary { cursor:pointer; }
 #pn .cp .sb { display:block; width:100%; min-width:0; overflow:hidden; margin:0; }
 #pn .cp .sb i { max-width:100%; }
 #pn .cp > span:last-child { text-align:right; white-space:nowrap; }
+/* Remove the redundant heading above the combined BUY/HOLD/SELL/WAIT decision. */
+#pnDec .dh small { display:none !important; }
+/* Fundamental analysis keeps the box reveal/lift but has no visible border. */
+#pnFund .fu-c, #pnFund .fu-q, #pnFund .fu-w, #pnFund .fu-r {
+  border-color: transparent !important;
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+#pnFund .fu-c:hover, #pnFund .fu-q:hover, #pnFund .fu-w:hover, #pnFund .fu-r:hover {
+  transform: translateY(-2px);
+  border-color: transparent !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.24), 0 0 18px rgba(45,212,191,.07);
+}
 @media(max-width:620px) { #pn .cp { grid-template-columns:minmax(105px,38%) minmax(36px,1fr) 42px !important; gap:5px; } }
 @media(max-width:800px) { .ov{padding:0!important} .pn{width:100vw!important;height:100dvh!important} #pnDec .dcs{gap:8px} }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after {scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important} .fx-reveal{opacity:1;transform:none} }
