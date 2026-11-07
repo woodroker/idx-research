@@ -1,0 +1,11 @@
+{
+  "token": "8902924263:AAEkXIp73RgDmwzLfAO449SGiHl4B1DVY7U",
+  "chat_id": "",
+  "enabled": false,
+  "market_only": true,
+  "live_only": true,
+  "max_per_day": 20,
+  "max_burst": 5,
+  "min_gap_sec": 4,
+  "per_code_per_day": 1
+}
