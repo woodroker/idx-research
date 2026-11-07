@@ -20,8 +20,8 @@ jobs:
 
       - name: Commit and Push Extracted Files
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@://github.com"
+          git config --global woodroker "github-actions[bot]"
+          git config --global tamankoma@gmail.com "41898282+github-actions[bot]@://github.com"
           git add .
           git commit -m "Automated unzip: Extracted files from zip" || echo "No changes to commit"
           git push
