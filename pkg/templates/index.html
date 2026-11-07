@@ -181,53 +181,136 @@ button,.btn,.bt,.tc,.dact,.sig,.fu-pill,.fu-t span,.fu-ck span,.yf-go,.wx,.ptabs
       <option value="20">Window 20 hari</option>
     </select>
   </div>
-  <div class="w-full max-w-[640px] mx-auto relative">
-    <svg viewBox="0 0 700 500" class="w-full h-[430px] block" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <style>
-          .sector-dot { cursor: default; transition: r 0.18s ease, stroke 0.18s ease, fill 0.18s ease; }
-          .sector-dot:hover { r: 6.5; stroke: #ffffff; stroke-width: 2; filter: drop-shadow(0 0 8px rgba(45,212,191,0.45)); }
-          .quad-label { font: 600 10px 'JetBrains Mono', monospace; pointer-events: none; }
-          .axis-line { stroke: #202833; stroke-width: 1; }
-          .sector-label { font: 600 10px 'JetBrains Mono', monospace; pointer-events: none; }
-        </style>
-      </defs>
-      <rect x="350" y="0" width="350" height="250" fill="#2dd4bf08"/>
-      <rect x="350" y="250" width="350" height="250" fill="#f59e0b08"/>
-      <rect x="0" y="250" width="350" height="250" fill="#f0544f08"/>
-      <rect x="0" y="0" width="350" height="250" fill="#3b82f608"/>
-      <line x1="350" y1="0" x2="350" y2="500" class="axis-line"/>
-      <line x1="0" y1="250" x2="700" y2="250" class="axis-line"/>
-      <line x1="350" y1="250" x2="350" y2="256" stroke="#2dd4bf" stroke-width="2"/>
-      <text x="358" y="24" class="quad-label fill-[#2dd4bf]">Memimpin (kuat &amp; menguat)</text>
-      <text x="358" y="486" class="quad-label fill-[#f59e0b]">Melemah (kuat tapi melambat)</text>
-      <text x="8" y="486" class="quad-label fill-[#f0544f]">Tertinggal (lemah &amp; melemah)</text>
-      <text x="8" y="24" class="quad-label fill-[#3b82f6]">Membaik (lemah tapi menguat)</text>
+  <div class="w-full max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div class="relative">
+        <svg viewBox="0 0 700 500" class="w-full h-[430px] block" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <style>
+              .sector-dot { cursor: default; transition: r 0.18s ease, stroke 0.18s ease, fill 0.18s ease; }
+              .sector-dot:hover { r: 6.5; stroke: #ffffff; stroke-width: 2; filter: drop-shadow(0 0 8px rgba(45,212,191,0.45)); }
+              .quad-label { font: 600 10px 'JetBrains Mono', monospace; pointer-events: none; }
+              .axis-line { stroke: #202833; stroke-width: 1; }
+              .sector-label { font: 600 10px 'JetBrains Mono', monospace; pointer-events: none; }
+            </style>
+          </defs>
+          <rect x="350" y="0" width="350" height="250" fill="#2dd4bf08"/>
+          <rect x="350" y="250" width="350" height="250" fill="#f59e0b08"/>
+          <rect x="0" y="250" width="350" height="250" fill="#f0544f08"/>
+          <rect x="0" y="0" width="350" height="250" fill="#3b82f608"/>
+          <line x1="350" y1="0" x2="350" y2="500" class="axis-line"/>
+          <line x1="0" y1="250" x2="700" y2="250" class="axis-line"/>
+          <line x1="350" y1="250" x2="350" y2="256" stroke="#2dd4bf" stroke-width="2"/>
+          <text x="358" y="24" class="quad-label fill-[#2dd4bf]">Memimpin (kuat &amp; menguat)</text>
+          <text x="358" y="486" class="quad-label fill-[#f59e0b]">Melemah (kuat tapi melambat)</text>
+          <text x="8" y="486" class="quad-label fill-[#f0544f]">Tertinggal (lemah &amp; melemah)</text>
+          <text x="8" y="24" class="quad-label fill-[#3b82f6]">Membaik (lemah tapi menguat)</text>
 
-      <g class="sector-dot" transform="translate(640,24)"><title>Teknologi · RR 118 · RM +12</title><circle r="5" fill="#2dd4bf"/></g>
-      <text x="648" y="18" class="sector-label fill-slate-400">Teknologi</text>
-      <g class="sector-dot" transform="translate(535,90)"><title>Perbankan · RR 112 · RM +7</title><circle r="5" fill="#2dd4bf"/></g>
-      <text x="543" y="84" class="sector-label fill-slate-400">Perbankan</text>
-      <g class="sector-dot" transform="translate(430,140)"><title>Industri · RR 106 · RM +4</title><circle r="5" fill="#2dd4bf"/></g>
-      <text x="438" y="134" class="sector-label fill-slate-400">Industri</text>
-      <g class="sector-dot" transform="translate(370,210)"><title>BUMN · RR 101 · RM +1</title><circle r="5" fill="#2dd4bf"/></g>
-      <text x="378" y="204" class="sector-label fill-slate-400">BUMN</text>
-      <g class="sector-dot" transform="translate(270,180)"><title>Kesehatan · RR 97 · RM +3</title><circle r="5" fill="#3b82f6"/></g>
-      <text x="278" y="174" class="sector-label fill-slate-400">Kesehatan</text>
-      <g class="sector-dot" transform="translate(250,275)"><title>Properti · RR 95 · RM -1</title><circle r="5" fill="#f0544f"/></g>
-      <text x="242" y="284" class="sector-label fill-slate-400" text-anchor="end">Properti</text>
-      <g class="sector-dot" transform="translate(200,295)"><title>Jasa · RR 92 · RM -2</title><circle r="5" fill="#f0544f"/></g>
-      <text x="192" y="304" class="sector-label fill-slate-400" text-anchor="end">Jasa</text>
-      <g class="sector-dot" transform="translate(410,305)"><title>Energi · RR 104 · RM -3</title><circle r="5" fill="#f59e0b"/></g>
-      <text x="418" y="314" class="sector-label fill-slate-400">Energi</text>
-      <g class="sector-dot" transform="translate(95,360)"><title>Pertambangan · RR 86 · RM -6</title><circle r="5" fill="#f0544f"/></g>
-      <text x="88" y="369" class="sector-label fill-slate-400" text-anchor="end">Pertambangan</text>
-    </svg>
-    <div class="flex items-end justify-between mt-1 text-[10px] text-slate-500">
-      <span class="flex items-center gap-1">↑ RS-Momentum</span>
-      <span class="flex items-center gap-1">RS-Ratio →</span>
+          <g class="sector-dot" transform="translate(640,24)"><title>Teknologi · RR 118 · RM +12</title><circle r="5" fill="#2dd4bf"/></g>
+          <text x="648" y="18" class="sector-label fill-slate-400">Teknologi</text>
+          <g class="sector-dot" transform="translate(535,90)"><title>Perbankan · RR 112 · RM +7</title><circle r="5" fill="#2dd4bf"/></g>
+          <text x="543" y="84" class="sector-label fill-slate-400">Perbankan</text>
+          <g class="sector-dot" transform="translate(430,140)"><title>Industri · RR 106 · RM +4</title><circle r="5" fill="#2dd4bf"/></g>
+          <text x="438" y="134" class="sector-label fill-slate-400">Industri</text>
+          <g class="sector-dot" transform="translate(370,210)"><title>BUMN · RR 101 · RM +1</title><circle r="5" fill="#2dd4bf"/></g>
+          <text x="378" y="204" class="sector-label fill-slate-400">BUMN</text>
+          <g class="sector-dot" transform="translate(270,180)"><title>Kesehatan · RR 97 · RM +3</title><circle r="5" fill="#3b82f6"/></g>
+          <text x="278" y="174" class="sector-label fill-slate-400">Kesehatan</text>
+          <g class="sector-dot" transform="translate(250,275)"><title>Properti · RR 95 · RM -1</title><circle r="5" fill="#f0544f"/></g>
+          <text x="242" y="284" class="sector-label fill-slate-400" text-anchor="end">Properti</text>
+          <g class="sector-dot" transform="translate(200,295)"><title>Jasa · RR 92 · RM -2</title><circle r="5" fill="#f0544f"/></g>
+          <text x="192" y="304" class="sector-label fill-slate-400" text-anchor="end">Jasa</text>
+          <g class="sector-dot" transform="translate(410,305)"><title>Energi · RR 104 · RM -3</title><circle r="5" fill="#f59e0b"/></g>
+          <text x="418" y="314" class="sector-label fill-slate-400">Energi</text>
+          <g class="sector-dot" transform="translate(95,360)"><title>Pertambangan · RR 86 · RM -6</title><circle r="5" fill="#f0544f"/></g>
+          <text x="88" y="369" class="sector-label fill-slate-400" text-anchor="end">Pertambangan</text>
+        </svg>
+        <div class="flex items-end justify-between mt-1 text-[10px] text-slate-500">
+          <span class="flex items-center gap-1">↑ RS-Momentum</span>
+          <span class="flex items-center gap-1">RS-Ratio →</span>
+        </div>
+      </div>
+
+      <div class="bg-[#11161d] border border-slate-700 rounded-xl p-4 space-y-3">
+        <h4 class="font-semibold text-slate-100 text-sm mb-1">Daftar Sektor &amp; Emiten</h4>
+        <div class="space-y-2">
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#2dd4bf] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Perbankan</div>
+              <div class="text-xs text-slate-400">BMRI · BBRI · BBCA · BBNI</div>
+              <div class="text-xs text-[#2dd4bf] mt-0.5">+2.4%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#f59e0b] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Energi</div>
+              <div class="text-xs text-slate-400">MEDC · PTBA · ITMG · ADRO</div>
+              <div class="text-xs text-[#f59e0b] mt-0.5">-1.1%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#2dd4bf] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">BUMN</div>
+              <div class="text-xs text-slate-400">TLKM · EXCL · ISAT · FILM</div>
+              <div class="text-xs text-[#2dd4bf] mt-0.5">+0.8%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#f0544f] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Properti</div>
+              <div class="text-xs text-slate-400">BSDE · SMRA · WPON · CTRA</div>
+              <div class="text-xs text-[#f0544f] mt-0.5">-0.6%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#2dd4bf] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Industri</div>
+              <div class="text-xs text-slate-400">INDF · ICBP · MLBI · ROTI</div>
+              <div class="text-xs text-[#2dd4bf] mt-0.5">+1.3%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#f0544f] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Pertambangan</div>
+              <div class="text-xs text-slate-400">ANTAM · INCO · NCKL · MDKA</div>
+              <div class="text-xs text-[#f0544f] mt-0.5">-2.0%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#3b82f6] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Kesehatan</div>
+              <div class="text-xs text-slate-400">KMTR · MIKA · HEAL · SIDO</div>
+              <div class="text-xs text-[#3b82f6] mt-0.5">+0.4%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#2dd4bf] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Teknologi</div>
+              <div class="text-xs text-slate-400">GOTO · BUKA · ELSA · AUTO</div>
+              <div class="text-xs text-[#2dd4bf] mt-0.5">+3.1%</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full bg-[#f0544f] mt-0.5"></span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Jasa</div>
+              <div class="text-xs text-slate-400">MAPA · ATRN · TSPC · EXCL</div>
+              <div class="text-xs text-[#f0544f] mt-0.5">-0.9%</div>
+            </div>
+          </div>
+        </div>
+        <p class="mt-2 text-[10px] text-slate-600">Data contoh; diisi dari API Ringkasan Saham nanti.</p>
+      </div>
     </div>
-    <p class="mt-2 text-[10px] text-slate-600 text-center">Hijau = Memimpin, biru = Membaik, oranye = Melemah, merah = Tertinggal. Data contoh; diisi dari API Ringkasan Saham nanti.</p>
+    <p class="mt-3 text-[10px] text-slate-600 text-center">Hijau = Memimpin, biru = Membaik, oranye = Melemah, merah = Tertinggal.</p>
   </div>
 </div>
 <div id="v4" hidden><div class="grid" id="bc" style="margin-bottom:6px"></div><div class="cd" style="margin:16px 0 18px"><div class="bar" style="margin:0"><input type="text" id="bq" placeholder="Cari kode / emiten"><select id="bl"><option value="1e9">Value rata² ≥ Rp1 M</option><option value="1e10">Value rata² ≥ Rp10 M</option><option value="0">Semua likuiditas</option></select></div></div>
