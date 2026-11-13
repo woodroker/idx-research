@@ -1,4 +1,4 @@
-name = "idx-research-d1-proxy"
+name = "idx-screener-state"
 main = "d1-proxy.js"
 compatibility_date = "2026-11-13"
 
