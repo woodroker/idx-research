@@ -75,6 +75,28 @@ In GitHub, open **Settings → Secrets and variables → Actions → New reposit
 
 Enable GitHub Actions. The workflow cron schedules use UTC: `01:20 UTC` is `08:20 WIB`, and `06:20 UTC` is `13:20 WIB`. GitHub can delay or disable schedule events, so check Actions after setup.
 
+## Update market data in D1 later
+
+GitHub Actions scans the rows already stored in D1; it does not refresh the local market-data source by itself. First import the newest market files into the local screener database, `pkg/screener.db`. Then:
+
+1. From the repository root, run this in PowerShell:
+
+   ```powershell
+   & "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" pkg/tools/export_d1_update.py
+   ```
+
+   It creates an ignored file under `.d1_exports/`. That compressed bundle contains the latest 21 price dates, the latest small reference datasets, fundamentals cache, and schema/data version only. It excludes accounts, preferences, watchlists, Telegram queue/history, credentials, and backtest results. Never upload `screener.db` itself.
+
+2. Open [the D1 update notebook in Google Colab](https://colab.research.google.com/github/woodroker/idx-research/blob/main/pkg/tools/update_d1_colab.ipynb). Upload the `.json.gz` bundle, run each cell in order, and enter the Worker proxy token when prompted. The token input is hidden and the notebook does not save it.
+
+3. Confirm the notebook prints the final D1 counts. The update is repeatable, keeps only the newest 21 PX dates, and never clears the whole database. It skips unchanged snapshots and replaces only a snapshot whose source hash or row count changed.
+
+Run this after importing new local data, typically once per trading day and preferably after 16:00 WIB so it does not overlap the cloud scan. The local PC only needs to be online while creating and uploading the update bundle; the scheduled GitHub scanner runs independently in the cloud.
+
+### Important token cleanup
+
+The current Worker secret was initially set to the public D1 database ID. Although Cloudflare now stores the binding as a secret, that value is guessable because the database ID is in the public repository. Replace it with a long random token in **Cloudflare Worker → Settings → Variables and Secrets** and set the exact same value as the GitHub Actions repository secret `SCREENER_D1_API_TOKEN`. Until both sides match the new random value, GitHub Actions and the Colab notebook cannot authenticate. Do not paste the token into the repository, notebook, or chat.
+
 ## Source/data hygiene
 
 The repository `.gitignore` excludes local `.env` files, `screener.db`, imported files under `pkg/data`, backups, caches, generated signal files, and `hasil_backtest*` directories. It keeps Python backtest source files. Use `git check-ignore -v <path>` before staging a new local dataset.

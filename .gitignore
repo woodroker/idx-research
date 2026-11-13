@@ -15,6 +15,7 @@ pkg/legacy/legacy_embedded_D.json
 
 # Imported personal/research files are kept out of the source repository.
 pkg/data/
+.d1_exports/
 
 # Generated screen state and API caches
 pkg/signals_today.json
