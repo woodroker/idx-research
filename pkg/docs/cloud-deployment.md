@@ -77,7 +77,7 @@ Enable GitHub Actions. The workflow cron schedules use UTC: `01:20 UTC` is `08:2
 
 ## Update market data in D1 later
 
-GitHub Actions scans the rows already stored in D1; it does not refresh the local market-data source by itself. First import the newest market files into the local screener database, `pkg/screener.db`. Then:
+GitHub Actions scans the rows already stored in D1; it does not fetch these files by itself. Each day, import both the latest **Ringkasan Saham** file (price rows, `px`) and **Update 5 Persen** file (daily holder changes, `days`) through the local app. They are stored in `pkg/screener.db`. Then:
 
 1. From the repository root, run this in PowerShell:
 
@@ -85,17 +85,17 @@ GitHub Actions scans the rows already stored in D1; it does not refresh the loca
    & "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" pkg/tools/export_d1_update.py
    ```
 
-   It creates an ignored file under `.d1_exports/`. That compressed bundle contains the latest 21 price dates, the latest small reference datasets, fundamentals cache, and schema/data version only. It excludes accounts, preferences, watchlists, Telegram queue/history, credentials, and backtest results. Never upload `screener.db` itself.
+   It creates an ignored file under `.d1_exports/`. That compressed bundle contains the latest 21 Ringkasan Saham price dates (`px`), the latest 21 daily Update 5 Persen dates (`days`), the latest small reference datasets, fundamentals cache, and schema/data version only. It excludes accounts, preferences, watchlists, Telegram queue/history, credentials, and backtest results. Never upload `screener.db` itself.
 
 2. Open [the D1 update notebook in Google Colab](https://colab.research.google.com/github/woodroker/idx-research/blob/main/pkg/tools/update_d1_colab.ipynb). Upload the `.json.gz` bundle, run each cell in order, and enter the Worker proxy token when prompted. The token input is hidden and the notebook does not save it.
 
-3. Confirm the notebook prints the final D1 counts. The update is repeatable, keeps only the newest 21 PX dates, and never clears the whole database. It skips unchanged snapshots and replaces only a snapshot whose source hash or row count changed.
+3. Confirm the notebook prints the final D1 counts. The update is repeatable, keeps only the newest 21 PX dates and 21 daily 5% update dates, and never clears the whole database. It skips unchanged snapshots and replaces only a snapshot whose source hash or row count changed.
 
 Run this after importing new local data, typically once per trading day and preferably after 16:00 WIB so it does not overlap the cloud scan. The local PC only needs to be online while creating and uploading the update bundle; the scheduled GitHub scanner runs independently in the cloud.
 
-### Important token cleanup
+### Keep the proxy token private
 
-The current Worker secret was initially set to the public D1 database ID. Although Cloudflare now stores the binding as a secret, that value is guessable because the database ID is in the public repository. Replace it with a long random token in **Cloudflare Worker → Settings → Variables and Secrets** and set the exact same value as the GitHub Actions repository secret `SCREENER_D1_API_TOKEN`. Until both sides match the new random value, GitHub Actions and the Colab notebook cannot authenticate. Do not paste the token into the repository, notebook, or chat.
+Use a long random token for the Worker secret `D1_PROXY_TOKEN` and set that exact same value as the GitHub Actions repository secret `SCREENER_D1_API_TOKEN`. Do not use the D1 database ID as the token: the database ID is visible in the public repository and is not a credential. If the old database ID was used as the token, replace it on both sides. Do not paste the token into the repository, notebook, or chat.
 
 ## Source/data hygiene
 

@@ -9,7 +9,8 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parents[2]
 SOURCE = BASE / "pkg" / "screener.db"
 PX_DAYS = 21
-SUPPORT_TYPES = ("days", "tipe", "sat", "kl", "nm", "klc")
+DAILY_5PCT_DAYS = 21
+SUPPORT_TYPES = ("tipe", "sat", "kl", "nm", "klc")
 
 
 def _read_rows(conn, table, where="", params=(), columns=None):
@@ -42,6 +43,17 @@ def build_bundle(source_path=SOURCE, today=None):
             "AND data_date IN (%s)" % px_marks,
             tuple(px_dates),
         )]
+        five_pct_dates = [row[0] for row in source.execute(
+            "SELECT DISTINCT data_date FROM shared_datasets "
+            "WHERE dataset_type='days' ORDER BY data_date DESC LIMIT ?",
+            (DAILY_5PCT_DAYS,),
+        )]
+        five_pct_marks = ",".join("?" for _ in five_pct_dates)
+        five_pct_ids = [row[0] for row in source.execute(
+            "SELECT id FROM shared_datasets WHERE dataset_type='days' "
+            "AND data_date IN (%s)" % five_pct_marks,
+            tuple(five_pct_dates),
+        )] if five_pct_dates else []
         support_marks = ",".join("?" for _ in SUPPORT_TYPES)
         support_ids = [row[0] for row in source.execute(
             "SELECT s.id FROM shared_datasets AS s JOIN ("
@@ -51,7 +63,7 @@ def build_bundle(source_path=SOURCE, today=None):
             % support_marks,
             SUPPORT_TYPES,
         )]
-        selected_ids = sorted(set(px_ids + support_ids))
+        selected_ids = sorted(set(px_ids + five_pct_ids + support_ids))
         if not selected_ids:
             raise SystemExit("Dataset harga/pendukung yang diperlukan tidak ditemukan.")
         marks = ",".join("?" for _ in selected_ids)
@@ -85,6 +97,7 @@ def build_bundle(source_path=SOURCE, today=None):
             "generated_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "source_date_wib": today,
             "px_dates": sorted(px_dates),
+            "five_pct_dates": sorted(five_pct_dates),
             "dataset_ids": selected_ids,
             "source_rows": total,
             "tables": tables,
@@ -109,6 +122,7 @@ def main():
     temp.replace(output)
     print("Bundle update siap:", output)
     print("Tanggal px:", ", ".join(bundle["px_dates"]))
+    print("Tanggal Update 5 Persen:", ", ".join(bundle["five_pct_dates"]))
     for name, table in bundle["tables"].items():
         print("  %-20s %s baris" % (name, len(table["rows"])))
     print("Total baris snapshot:", bundle["source_rows"])
