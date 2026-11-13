@@ -8,6 +8,7 @@ on:
         type: choice
         options:
           - test
+          - d1-check
           - morning
           - afternoon
         default: test
@@ -47,6 +48,21 @@ jobs:
       - name: Test Telegram delivery
         if: github.event_name == 'workflow_dispatch' && inputs.action == 'test'
         run: python pkg/telegram_worker.py --test
+      - name: Check Cloudflare D1 (read only)
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'd1-check'
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "pkg")
+          import database
+          conn = database.connect()
+          try:
+              for table in ("shared_datasets", "shared_records", "fundamentals_cache", "alert_log", "telegram_outbox"):
+                  count = conn.execute("SELECT COUNT(*) FROM " + table).fetchone()[0]
+                  print("D1 %s: %s rows" % (table, count))
+          finally:
+              conn.close()
+          PY
       - name: Run manual morning session
         if: github.event_name == 'workflow_dispatch' && inputs.action == 'morning'
         run: python pkg/telegram_worker.py --window morning
