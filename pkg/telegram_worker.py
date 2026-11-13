@@ -53,7 +53,11 @@ def setup():
     print("Pesan konfirmasi:", "terkirim" if ok else "gagal (%s)" % err)
 
 
-def main(window=None):
+def main(window=None, test=False):
+    if test:
+        result = telegram.send_test()
+        print("Tes Telegram:", "terkirim" if result.get("ok") else "gagal (%s)" % result.get("error"), flush=True)
+        return 0 if result.get("ok") else 1
     if window not in (None, *WINDOWS):
         raise ValueError("window harus morning atau afternoon")
     if window:
@@ -122,5 +126,8 @@ if __name__ == "__main__":
         raise SystemExit(0)
     parser = argparse.ArgumentParser(description="Jalankan worker Telegram screener.")
     parser.add_argument("--window", choices=tuple(WINDOWS), help="Jalankan hanya pada jendela waktu cloud WIB.")
+    parser.add_argument("--test", action="store_true", help="Kirim satu pesan tes Telegram lalu keluar.")
     args = parser.parse_args()
-    raise SystemExit(main(window=args.window))
+    if args.test and args.window:
+        parser.error("--test tidak bisa dipakai bersama --window")
+    raise SystemExit(main(window=args.window, test=args.test))

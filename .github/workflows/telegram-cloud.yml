@@ -1,6 +1,17 @@
 name: Telegram stock screener (Cloudflare D1)
 
 on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Tes Telegram atau jalankan satu sesi"
+        type: choice
+        options:
+          - test
+          - morning
+          - afternoon
+        default: test
+        required: true
   schedule:
     # 08:20 and 13:20 Jakarta time (UTC+7), weekdays.
     - cron: "20 1 * * 1-5"
@@ -33,6 +44,15 @@ jobs:
           cache-dependency-path: pkg/requirements.txt
       - name: Install dependencies
         run: python -m pip install -r pkg/requirements.txt
+      - name: Test Telegram delivery
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'test'
+        run: python pkg/telegram_worker.py --test
+      - name: Run manual morning session
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'morning'
+        run: python pkg/telegram_worker.py --window morning
+      - name: Run manual afternoon session
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'afternoon'
+        run: python pkg/telegram_worker.py --window afternoon
       - name: Run morning session
         if: github.event.schedule == '20 1 * * 1-5'
         run: python pkg/telegram_worker.py --window morning
