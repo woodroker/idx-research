@@ -81,7 +81,11 @@ class D1Connection:
         req = urllib.request.Request(
             self.base_url + endpoint,
             data=json.dumps(body, separators=(",", ":")).encode("utf-8"),
-            headers={"Authorization": "Bearer " + self.token, "Content-Type": "application/json"},
+            headers={
+                "Authorization": "Bearer " + self.token,
+                "Content-Type": "application/json",
+                "User-Agent": "idx-research-d1-client/1.0",
+            },
             method="POST",
         )
         try:
