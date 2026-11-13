@@ -190,6 +190,8 @@ def parse(a, fname=""):
         iLF = fb(ix(r"LOCAL"), 5)
         iTt = fb(ix(r"TOTAL"), 10)
         iPc = fb(ix(r"PERCENT|PCT|%"), 11)
+        iA = ix(r"CONTROLLER|AFFILIAT|PENGENDALI|TERAFILIASI")      # kolom baru KSEI: CONTROLLER / AFFILIATE OF THE CONTROLLER
+        af = lambda v: "" if v is None else ("T" if re.search(r"AFFILIAT|TERAFILIASI", str(v), re.I) else "P" if re.search(r"CONTROLLER|PENGENDALI", str(v), re.I) else "")
         per = {}
         for r in a[hi + 1:]:
             if r and _g(r, 0) and _g(r, 1):
@@ -199,15 +201,17 @@ def parse(a, fname=""):
                     _g(r, iNm), _g(r, iTy), "" if lf is None else str(lf).strip(),
                     num(_g(r, iTt)), pct(_g(r, iPc)),
                     None if iN < 0 else _g(r, iN), None if iD < 0 else _g(r, iD),
-                    None if iS < 0 else num(_g(r, iS)), None if iC < 0 else num(_g(r, iC))])
+                    None if iS < 0 else num(_g(r, iS)), None if iC < 0 else num(_g(r, iC))] + ([af(_g(r, iA))] if iA >= 0 else []))
                 nm[r[1]] = _g(r, 2)
         out = [{"k": "sat", "d": d, "data": o} for d, o in per.items()]
         return out + [{"k": "nm", "d": "-", "data": nm}]
 
     per = {}                                               # klasifikasi (header 'SHARE CODE')
+    # jumlah kolom ikut header (format Local_/Foreign_ lebih dari 40 kolom); minimal 43 agar identik dgn format lama
+    ke = max([i for i, x in enumerate(h) if x is not None and str(x).strip()] + [42]) + 1
     for r in a[hi + 1:]:
         if r and _g(r, 0) and _g(r, 1):
-            per.setdefault(iso(r[0]), {})[r[1]] = [num(x) for x in r[3:43]]
+            per.setdefault(iso(r[0]), {})[r[1]] = [num(x) for x in r[3:ke]]
             nm[r[1]] = nm.get(r[1]) or _g(r, 2)
     out = [{"k": "kl", "d": d, "data": o} for d, o in per.items()]
-    return out + [{"k": "klc", "d": "-", "data": ["null" if x is None else str(x) for x in h[3:43]]}, {"k": "nm", "d": "-", "data": nm}]
+    return out + [{"k": "klc", "d": "-", "data": ["null" if x is None else str(x) for x in h[3:ke]]}, {"k": "nm", "d": "-", "data": nm}]

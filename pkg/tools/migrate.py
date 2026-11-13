@@ -4,14 +4,14 @@ Urutan sumber (sama dengan perilaku dashboard lama: data tertanam < file unggaha
   1. data tertanam di index.html lama   (legacy/legacy_embedded_D.json atau --legacy-html)
   2. arsip CSV  data/*.csv               (urut waktu ubah; yang lebih baru menimpa tanggal yang sama)
   3. isi IndexedDB (--usr-json)          (hanya MENGISI yang belum ada; beda isi dicatat sebagai konflik)
-Contoh:  python migrate.py
-         python migrate.py --csv-dir data --usr-json export_indexeddb.json
+Contoh:  python tools/migrate.py
+         python tools/migrate.py --csv-dir data --usr-json export_indexeddb.json
 """
 import argparse, json, sys, time
 from pathlib import Path
+BASE = Path(__file__).resolve().parent.parent          # folder proyek (tools/ ada di dalamnya)
+sys.path.insert(0, str(BASE))
 import database, importer, store
-
-BASE = Path(__file__).resolve().parent
 
 
 def main():
@@ -89,7 +89,7 @@ def main():
         print("\nRingkasan screener.db:")
         for k, v in store.summary(conn).items():
             print("  %-5s %4d dataset  %s .. %s  %d record" % (k, v["datasets"], v["first"], v["last"], v["records"]))
-    print("\nLanjut: python validate.py")
+    print("\nLanjut: python tools/validate.py")
 
 
 if __name__ == "__main__":

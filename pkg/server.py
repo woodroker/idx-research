@@ -1,34 +1,62 @@
 """Server lokal screener - sumber data tunggal: SQLite (screener.db).
 Upload -> parse di server (parsers.py, setara parse() dashboard) -> simpan ke SQLite.
-Dashboard membaca seluruh data dari /api/data. IndexedDB lama hanya DIBACA sekali utk migrasi.
+Dashboard membaca seluruh data dari /api/data. IndexedDB/cloud tidak lagi dipakai (hanya dibaca sekali utk migrasi).
 """
 from pathlib import Path
-from flask import Flask, jsonify, request, send_file, Response, send_from_directory
+from flask import Flask, jsonify, request, send_file, Response
 from werkzeug.utils import secure_filename
 import pandas as pd
-import gzip, io, json, os, threading
+import gzip, io, json, os, threading, socket, uuid, zlib
 
-import database, fundamentals, importer, live, parsers, store, telegram
+import database, free_float, fundamentals, importer, live, parsers, store, telegram
 
 BASE = Path(__file__).resolve().parent
 TEMPLATE = BASE / "templates" / "index.html"
-DATA_DIR = BASE / "data"
+_TAG_CACHE = {"version": None, "tags": None}
+_TAG_LOCK = threading.Lock()
+DATA_DIR = BASE / "data"          # arsip CSV (cadangan mentah, BUKAN sumber kalkulasi)
 UPLOAD_DIR = BASE / "uploads"
-STATIC_DIR = BASE / "static"
 DATA_DIR.mkdir(exist_ok=True)
 UPLOAD_DIR.mkdir(exist_ok=True)
 database.initialize()
-telegram.start()
 
 app = Flask(__name__, static_folder=None)
 app.config["MAX_CONTENT_LENGTH"] = 400 * 1024 * 1024
 ALLOWED = {".xlsx", ".xls", ".csv"}
 _cache = {"v": None, "raw": b"", "gz": b""}
+DATA_CACHE_PATH = BASE / ".api_data_cache.gz"
 _lock = threading.Lock()
 
 
+def _load_disk_data_cache(version):
+    """Load a version-matched gzip payload so server restarts don't rebuild 38 MB of JSON."""
+    try:
+        blob = DATA_CACHE_PATH.read_bytes()
+        split = blob.find(b"\n")
+        if split < 1 or int(blob[:split]) != version:
+            return None
+        gz = blob[split + 1:]
+        raw = gzip.decompress(gz)
+        return raw, gz
+    except (OSError, ValueError, EOFError, gzip.BadGzipFile, zlib.error):
+        return None
+
+
+def _save_disk_data_cache(version, gz):
+    """Atomically persist the compressed cache; a failed cache write must not fail the API."""
+    temp_path = DATA_CACHE_PATH.with_suffix(DATA_CACHE_PATH.suffix + ".tmp")
+    try:
+        temp_path.write_bytes(str(version).encode("ascii") + b"\n" + gz)
+        temp_path.replace(DATA_CACHE_PATH)
+    except OSError:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
 def csv_text_from_upload(file_storage):
-    """-> (nama_aman, teks CSV utf-8). XLSX/XLS dikonversi seperti sebelumnya."""
+    """-> (nama_aman, teks CSV utf-8). XLSX/XLS dikonversi seperti sebelumnya (tanpa header sintetis)."""
     name = secure_filename(file_storage.filename or "upload")
     suffix = Path(name).suffix.lower()
     raw = file_storage.read()
@@ -59,6 +87,7 @@ def process_file(f):
             why = "data >=1% rusak, dilewati: " + "; ".join(skipped) if skipped else "tidak ada baris data yang terbaca"
             return {"file": orig, "ok": False, "error": why}
         res = store.save_items(keep, name, origin="upload")
+        # arsip mentah (cadangan) - gagal menulis arsip tidak membatalkan penyimpanan database
         try:
             tgt = DATA_DIR / (Path(name).stem + ".csv")
             tmp = tgt.with_suffix(".csv.tmp")
@@ -74,7 +103,7 @@ def process_file(f):
         if warns:
             out["warnings"] = warns
         return out
-    except Exception as exc:
+    except Exception as exc:                      # satu file gagal tidak menggagalkan file lain
         return {"file": orig, "ok": False, "error": str(exc)}
 
 
@@ -94,26 +123,69 @@ def common_headers(response):
     return response
 
 
+@app.route("/static/<path:fn>")
+def static_files(fn):
+    from flask import send_from_directory
+    return send_from_directory(BASE / "static", fn)
+
+
 @app.route("/")
+@app.route("/original")
+@app.route("/original/")
 def index():
     if not TEMPLATE.exists():
         return "templates/index.html tidak ditemukan.", 500
-    html = TEMPLATE.read_text(encoding="utf-8")
-    # Avoid collision between the radar chart component and the RR render routine.
-    html = html.replace("var RR=({C})=>", "var RRComp=({C})=>")
-    html = html.replace("RC.createElement(RR,{C:RXC})", "RC.createElement(RRComp,{C:RXC})")
-    if "ui-enhancements.css" not in html:
-        html = html.replace("</head>", '<link rel="stylesheet" href="/assets/ui-enhancements.css"></head>', 1)
-    if "ui-enhancements.js" not in html:
-        html = html.replace("</body>", '<script src="/assets/ui-enhancements.js" defer></script></body>', 1)
-    return Response(html, mimetype="text/html; charset=utf-8")
+    return send_file(TEMPLATE, mimetype="text/html")
 
 
-@app.route("/assets/<path:filename>")
-def assets(filename):
-    if filename not in {"ui-enhancements.css", "ui-enhancements.js"}:
-        return jsonify(ok=False, error="Aset tidak ditemukan"), 404
-    return send_from_directory(STATIC_DIR, filename)
+@app.route("/api/screener/tags")
+def screener_tags():
+    """Tag teknikal untuk empat filter BUY/SELL; tidak tergantung status Telegram ON/OFF."""
+    from screener_tags import compute_tags
+    conn = database.connect()
+    try:
+        version = store.data_version(conn)
+        # Serialisasi kalkulasi cache agar beberapa browser pertama tidak menghitung
+        # seluruh tag saham bersamaan ketika versi data baru masuk.
+        with _TAG_LOCK:
+            if _TAG_CACHE["version"] != version or _TAG_CACHE["tags"] is None:
+                raw = json.loads(store.build_data_json(conn))
+                try:
+                    _, metadata = telegram._codes_and_metadata()
+                except Exception:
+                    metadata = {}
+                _TAG_CACHE["tags"] = compute_tags(raw, metadata_by_code=metadata)
+                _TAG_CACHE["version"] = version
+            tags = _TAG_CACHE["tags"]
+        tags = dict(tags)
+        try:    # Sertakan sinyal ARA terkini yang lolos scanner, termasuk emiten yang sudah masuk Top Gainer.
+            telegram._sig_load()   # worker berjalan di proses lain: muat riwayat terbaru dari signals_today.json
+            items = telegram.signals_today().get("items") or []
+            early = set(tags.get("potensi_ara_early") or [])
+            momentum = set(tags.get("potensi_ara_momentum") or [])
+            ara_scores = dict(tags.get("ara_scores") or {})
+            for item in items:
+                code = str(item.get("code", "")).upper()
+                kind = str(item.get("kind", ""))
+                if not code:
+                    continue
+                if kind == "ara_early":
+                    early.add(code)
+                elif kind in ("ara_breakout", "ara_potensi", "ara_lanjut"):
+                    momentum.add(code)
+                if kind in ("ara_early", "ara_breakout") and item.get("ara_score") is not None:
+                    ara_scores[code] = {"score": item.get("ara_score"), "kind": kind,
+                                        "stage": item.get("ara_stage"), "date": item.get("date"),
+                                        "ara_price": item.get("ara_price"), "reasons": item.get("ara_reasons") or []}
+            tags["ara_scores"] = ara_scores
+            tags["potensi_ara_early"] = sorted(early)
+            tags["potensi_ara_momentum"] = sorted(momentum)
+            tags["potensi_ara"] = sorted(early | momentum)
+        except Exception:
+            pass
+        return jsonify(ok=True, data_version=version, tags=tags)
+    finally:
+        conn.close()
 
 
 @app.route("/api/upload", methods=["POST"])
@@ -134,8 +206,16 @@ def get_data():
         try:
             v = store.data_version(conn)
             if _cache["v"] != v:
-                raw = store.build_data_json(conn).encode("utf-8")
-                _cache.update(v=v, raw=raw, gz=gzip.compress(raw, compresslevel=5))
+                cached = _load_disk_data_cache(v)
+                if cached:
+                    raw, gz = cached
+                else:
+                    raw = store.build_data_json(conn).encode("utf-8")
+                    # This is a local dashboard payload; level 1 cuts cold-cache CPU time
+                    # while keeping the response compressed for the browser.
+                    gz = gzip.compress(raw, compresslevel=1)
+                    _save_disk_data_cache(v, gz)
+                _cache.update(v=v, raw=raw, gz=gz)
         finally:
             conn.close()
         etag, raw, gz = '"v%d"' % v, _cache["raw"], _cache["gz"]
@@ -150,6 +230,7 @@ def get_data():
 
 @app.route("/api/hc", methods=["POST"])
 def save_hc():
+    """Jumlah saham beredar per kode & tanggal yang diisi manual di dashboard (D.hc)."""
     body = request.get_json(silent=True) or {}
     data = body.get("data")
     if not isinstance(data, dict):
@@ -163,6 +244,7 @@ def save_hc():
 
 @app.route("/api/migrate/legacy", methods=["POST"])
 def migrate_legacy():
+    """Menerima isi IndexedDB lama (array {k,d,data}) dari browser. Default mode 'fill': tidak menimpa data yang sudah ada."""
     body = request.get_json(silent=True) or {}
     items, mode = body.get("items"), body.get("mode", "fill")
     if not isinstance(items, list) or mode not in ("fill", "replace"):
@@ -184,6 +266,7 @@ def migrate_legacy():
 
 @app.route("/api/live/update", methods=["POST"])
 def live_update():
+    """Perbarui px dari yfinance sekarang (manual). Aturan pengaman ada di live.py."""
     res = live.update()
     return jsonify(res), (200 if res.get("ok") else 502)
 
@@ -226,6 +309,7 @@ def wl_del(code):
 
 @app.route("/api/fundamental/<code>")
 def fundamental(code):
+    """Fundamental per emiten dari yfinance (cache 12 jam di SQLite). PER/PBV dihitung dgn harga terakhir di database."""
     import re
     code = code.upper()
     if not re.fullmatch(r"[A-Z0-9]{2,6}", code):
@@ -267,6 +351,73 @@ def alerts_ote():
     if not isinstance(items, list):
         return jsonify(ok=False, error="items harus berupa daftar"), 400
     return jsonify(ok=True, **telegram.enqueue(items[:20]))
+
+
+@app.route("/api/telegram/signals")
+def telegram_signals():
+    return jsonify(telegram.signals_today())
+
+
+@app.route("/api/telegram/signals/delete", methods=["POST"])
+def telegram_signal_delete():
+    b = request.get_json(silent=True) or {}
+    if not b.get("code") or not b.get("kind"):
+        return jsonify(ok=False, error="code & kind wajib"), 400
+    return jsonify(telegram.delete_signal(b.get("code"), b.get("kind"), b.get("time")))
+
+
+@app.route("/api/telegram/dash", methods=["POST"])
+def telegram_dash():
+    """Skor keputusan dashboard (KEP) per kode -> dipakai sebagai skor sinyal Telegram."""
+    return jsonify(telegram.set_dash((request.get_json(silent=True) or {}).get("rows")))
+
+
+@app.route("/api/free-float")
+def free_float_data():
+    cfg = telegram.load_cfg()
+    rows = free_float.dashboard_data(
+        today=telegram._today(), enabled=cfg.get("free_float_risk_enabled", True),
+        penalty_per_pp=cfg.get("free_float_penalty_per_pp", 1.0),
+        max_penalty=cfg.get("free_float_max_penalty", 10.0),
+        urgency_horizon_days=cfg.get("free_float_urgency_horizon_days", 1095))
+    return jsonify(ok=True, count=len(rows), today=telegram._today(), rows=rows,
+                   scoring={"enabled": bool(cfg.get("free_float_risk_enabled", True)),
+                            "penalty_per_pp": float(cfg.get("free_float_penalty_per_pp", 1.0)),
+                            "max_penalty": float(cfg.get("free_float_max_penalty", 10.0)),
+                            "urgency_horizon_days": int(cfg.get("free_float_urgency_horizon_days", 1095))})
+
+
+@app.route("/api/free-float/upload", methods=["POST"])
+def free_float_upload():
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return jsonify(ok=False, error="Pilih file CSV free float"), 400
+    if Path(f.filename).suffix.lower() != ".csv":
+        return jsonify(ok=False, error="File free float harus CSV"), 400
+    try:
+        name, text = csv_text_from_upload(f)
+        result = free_float.import_snapshot(text, name, request.form.get("as_of"))
+        return jsonify(ok=True, **result)
+    except (ValueError, OSError) as exc:
+        return jsonify(ok=False, error=str(exc)), 400
+
+
+@app.route("/api/screener/decisions")
+def screener_decisions():
+    """Snapshot keputusan + fase AMDX yang sama dengan UI Original, lintas proses."""
+    return jsonify(ok=True, **telegram.dashboard_snapshot())
+
+
+@app.route("/api/telegram/stats")
+def telegram_stats():
+    try:
+        days = max(1, min(90, int(request.args.get("days", 30))))
+    except ValueError:
+        days = 30
+    try:
+        return jsonify(telegram.signal_stats(days, force=request.args.get("refresh") == "1"))
+    except Exception as exc:
+        return jsonify(ok=False, error="%s: %s" % (type(exc).__name__, exc)), 500
 
 
 @app.route("/api/telegram/status")
@@ -313,6 +464,7 @@ def reload_data():
 
 @app.route("/api/reset", methods=["POST"])
 def reset_uploads():
+    # Tidak menyentuh screener.db maupun arsip data/. Hanya membersihkan folder uploads sementara.
     for p in UPLOAD_DIR.iterdir():
         if p.is_file():
             p.unlink()
@@ -331,5 +483,36 @@ if __name__ == "__main__":
             print("Auto-update harga yfinance AKTIF (tiap %s dtk selama jam bursa). Nonaktifkan: set SCREENER_YF=0" % os.environ.get("SCREENER_YF_INTERVAL", "300"))
         except ImportError:
             print("yfinance belum terpasang -> auto-update harga nonaktif (py -m pip install yfinance)")
+    telegram_owner = "%s:%s:%s" % (socket.gethostname(), os.getpid(), uuid.uuid4().hex[:8])
+    telegram_lease_seconds = max(30, int(os.environ.get("SCREENER_TELEGRAM_LEASE_SECONDS", "45")))
+    telegram_lease_stop = threading.Event()
+    telegram_started = False
+
+    def renew_embedded_telegram_lease():
+        while not telegram_lease_stop.wait(10.0):
+            try:
+                if not telegram.renew_worker_lease(telegram_owner, telegram_lease_seconds):
+                    print("Lease Telegram hilang; menghentikan sender/scanner untuk mencegah proses ganda.", flush=True)
+                    telegram.stop()
+                    return
+            except Exception as exc:
+                print("Heartbeat lease Telegram gagal: %s" % exc, flush=True)
+
+    worker_enabled = os.environ.get("SCREENER_TELEGRAM_WORKER", "1").strip().lower() not in ("0", "false", "no", "off")
+    scanner_enabled = os.environ.get("SCREENER_TELEGRAM_SCAN", "1").strip().lower() not in ("0", "false", "no", "off")
+    if worker_enabled:
+        if telegram.acquire_worker_lease(telegram_owner, telegram_lease_seconds):
+            state = telegram.start(sender=True, scanner=scanner_enabled)
+            telegram_started = True
+            threading.Thread(target=renew_embedded_telegram_lease, daemon=True, name="telegram-lease-heartbeat").start()
+            print("Telegram aktif dalam proses server | sender=%s | scanner=%s" % (state["sender"], state["scanner"]), flush=True)
+        else:
+            print("Telegram worker eksternal sudah memegang lease; server tetap berjalan tanpa worker duplikat.", flush=True)
     print("Dashboard siap: http://127.0.0.1:5000  (database: %s)" % database.DB_PATH)
-    app.run(host="127.0.0.1", port=5000, debug=False, threaded=True)
+    try:
+        app.run(host="127.0.0.1", port=5000, debug=False, threaded=True)
+    finally:
+        telegram_lease_stop.set()
+        if telegram_started:
+            telegram.stop()
+            telegram.release_worker_lease(telegram_owner)

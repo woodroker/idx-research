@@ -8,12 +8,34 @@ ATURAN PENGAMAN (agar tidak tumpang tindih / tertimpa):
   5. Kolom yang tidak ada di yfinance: foreign buy/sell, frekuensi, bid/offer = 0; nilai transaksi = estimasi vol x (H+L+C)/3;
      saham beredar dibawa dari data resmi terakhir; harga 'sebelumnya' dari penutupan resmi (bukan dari yfinance).
 """
-import datetime, json, statistics, threading, time
+import datetime, json, os, statistics, tempfile, threading, time, warnings
 import database, store
 
 WIB = datetime.timezone(datetime.timedelta(hours=7))
 STATE = {"ok": None, "interval": None, "next_run": None, "running": False, "last_run": None, "last_ok": None, "message": "belum dijalankan", "dates": [], "rows": 0}
 _lock = threading.Lock()
+_YF_CACHE_READY = False
+_YF_CALIBRATION = {}
+
+
+def _yfinance():
+    """Use a writable temp cache instead of yfinance's user-profile cache."""
+    global _YF_CACHE_READY
+    import yfinance as yf
+    warnings.filterwarnings(
+        "ignore",
+        message=r"The 'generic' unit for NumPy timedelta is deprecated.*",
+        category=DeprecationWarning,
+        module=r"yfinance\.utils",
+    )
+    if not _YF_CACHE_READY:
+        cache_dir = os.path.join(tempfile.gettempdir(), "idx-research-yfinance")
+        os.makedirs(cache_dir, exist_ok=True)
+        setter = getattr(yf, "set_tz_cache_location", None)
+        if setter:
+            setter(cache_dir)
+        _YF_CACHE_READY = True
+    return yf
 
 
 def now_wib():
@@ -27,12 +49,15 @@ def market_open(now=None):
 
 def fetch_daily(codes):
     """-> {kode: {tanggal: [open, high, low, close, volume]}} (bar harian; bar hari ini = berjalan/tertunda)."""
-    import yfinance as yf
+    yf = _yfinance()
     out = {}
-    for i in range(0, len(codes), 100):
-        chunk = [c + ".JK" for c in codes[i:i + 100]]
-        df = yf.download(chunk, period="15d", interval="1d", group_by="ticker", progress=False,
-                         threads=True, auto_adjust=False)
+    for i in range(0, len(codes), 200):
+        chunk = [c + ".JK" for c in codes[i:i + 200]]
+        try:
+            df = yf.download(chunk, period="15d", interval="1d", group_by="ticker", progress=False,
+                             threads=16, auto_adjust=False, timeout=10)
+        except Exception:
+            continue
         for t in chunk:
             try:
                 s = df[t].dropna(subset=["Close"])
@@ -42,6 +67,42 @@ def fetch_daily(codes):
                 out.setdefault(t[:-3], {})[idx.strftime("%Y-%m-%d")] = [
                     float(r["Open"]), float(r["High"]), float(r["Low"]), float(r["Close"]),
                     float(r["Volume"]) if r["Volume"] == r["Volume"] else 0.0]
+    return out
+
+
+def fetch_intraday(codes, target_date=None):
+    """Aggregate Yahoo 5-minute bars to the current session's running OHLCV."""
+    yf = _yfinance()
+    target_date = target_date or now_wib().date().isoformat()
+    out = {}
+    for i in range(0, len(codes), 100):
+        chunk = [c + ".JK" for c in codes[i:i + 100]]
+        try:
+            df = yf.download(chunk, period="1d", interval="5m", group_by="ticker", progress=False,
+                             threads=8, auto_adjust=False, timeout=10)
+        except Exception:
+            continue
+        if df is None or df.empty:
+            continue
+        for t in chunk:
+            try:
+                s = df[t].dropna(subset=["Close"]).copy()
+            except Exception:
+                continue
+            if getattr(s.index, "tz", None) is not None:
+                s.index = s.index.tz_convert("Asia/Jakarta")
+            for d, g in s.groupby(s.index.strftime("%Y-%m-%d")):
+                if d != target_date:
+                    continue
+                op = g["Open"].dropna()
+                hi = g["High"].dropna()
+                lo = g["Low"].dropna()
+                cl = g["Close"].dropna()
+                vol = g["Volume"].fillna(0).sum()
+                if op.empty or hi.empty or lo.empty or cl.empty or vol <= 0:
+                    continue
+                out.setdefault(t[:-3], {})[d] = [float(op.iloc[0]), float(hi.max()),
+                                                  float(lo.min()), float(cl.iloc[-1]), float(vol)]
     return out
 
 
@@ -88,15 +149,36 @@ def update(fetcher=fetch_daily, today=None):
         if not ref_date:
             return _done(False, "Belum ada px resmi (IDX) sebagai acuan. Unggah Ringkasan Saham dulu.")
         codes = [c for c, a in ref.items() if len(a) > 2 and a[2] > 0] or list(ref)
-        bars = fetcher(codes)
-        if not bars:
+        live_session = fetcher is fetch_daily and ref_date < today and market_open()
+        # During market hours only need a broad sample to calibrate yesterday's
+        # Yahoo data. Current-session prices for the full universe come from 5m bars.
+        cached_scale = _YF_CALIBRATION.get(ref_date) if live_session else None
+        daily_codes = codes[:200] if live_session and len(codes) > 200 else codes
+        bars = {} if cached_scale is not None else fetcher(daily_codes)
+        if not bars and cached_scale is None:
             return _done(False, "yfinance tidak mengembalikan data (internet/limit?)")
-        scale, err = _calibrate(ref_date, ref, bars)
+        scale, err = (cached_scale, None) if cached_scale is not None else _calibrate(ref_date, ref, bars)
         if err:
             return _done(False, err)
+        if live_session and cached_scale is None:
+            _YF_CALIBRATION[ref_date] = scale
+        intraday_rows = 0
+        intraday_error = None
+        if live_session:
+            try:
+                current = fetch_intraday(codes, today)
+                for c, by_date in current.items():
+                    if today in by_date:
+                        bars.setdefault(c, {})[today] = by_date[today]
+                        intraday_rows += 1
+            except Exception as exc:
+                intraday_error = "%s: %s" % (type(exc).__name__, exc)
         new_dates = sorted({d for b in bars.values() for d in b if ref_date < d <= today})
         if not new_dates:
-            return _done(True, "tidak ada tanggal baru setelah data resmi %s" % ref_date, ref_date=ref_date)
+            msg = "belum ada bar Yahoo untuk sesi %s; data terakhir %s" % (today, ref_date)
+            if intraday_error:
+                msg += " · intraday gagal: " + intraday_error
+            return _done(True, msg, ref_date=ref_date, rows=0)
         chain = {c: a[0] for c, a in ref.items() if a and a[0]}
         items = []
         for d in new_dates:
@@ -112,7 +194,7 @@ def update(fetcher=fetch_daily, today=None):
                     data[c] = [cl, prev]
                 else:
                     listed = ref[c][15] if c in ref and len(ref[c]) > 15 else 0
-                    data[c] = [cl, prev, v, int(round(v * (h + l + cl) / 3)), 0, 0, 0, o, h, l, 0, 0, 0, 0, 0, listed, 0]
+                    data[c] = [cl, prev, v, int(round(v * (h + l + cl) / 3)), 0, 0, 0, o, h, l, 0, 0, 0, 0, 0, listed, 0, 1]  # idx 17: flow detail unavailable
                 chain[c] = cl
             if data:
                 items.append({"k": "px", "d": d, "data": data})
@@ -120,7 +202,12 @@ def update(fetcher=fetch_daily, today=None):
         c = {}
         for r in res:
             c[r["status"]] = c.get(r["status"], 0) + 1
-        return _done(True, "px yfinance: %s" % c, dates=[r["date"] for r in res], rows=sum(r["rows"] for r in res),
+        msg = "px yfinance: %s" % c
+        if market_open():
+            msg += " · bar intraday 5m: %s saham" % intraday_rows
+        if intraday_error:
+            msg += " · intraday gagal: " + intraday_error
+        return _done(True, msg, dates=[r["date"] for r in res], rows=sum(r["rows"] for r in res),
                      ref_date=ref_date, detail=res)
     except Exception as exc:
         return _done(False, "%s: %s" % (type(exc).__name__, exc))

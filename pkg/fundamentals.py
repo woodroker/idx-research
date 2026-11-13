@@ -2,8 +2,15 @@
 Tidak menyentuh dataset px/KSEI. Semua ambang bisa diubah di bagian KONFIGURASI.
 Catatan: cakupan data yfinance untuk saham IDX tidak merata (terutama saham kecil); nilai yang tidak tersedia = None (ditampilkan 'n/a').
 """
-import datetime, json, os, threading, time
+import datetime, json, os, threading, time, urllib.parse, urllib.request
+from pathlib import Path
 import database
+from local_env import load_local_env
+
+
+def _utcnow():
+    """UTC naive (pengganti datetime.utcnow() yang deprecated)."""
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 # ---- KONFIGURASI (ambang analisis) ----
 # Skor gabungan (maks 14) & kuadran PBV x ROE/NPM/PE sesuai spesifikasi; semua ambang di sini
@@ -47,7 +54,7 @@ def _series(df, names):
 def fetch_raw(code):
     import yfinance as yf
     t = yf.Ticker(code + ".JK")
-    raw = {"code": code, "fetched": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z", "info": {}, "q": [], "a": []}
+    raw = {"code": code, "fetched": _utcnow().isoformat(timespec="seconds") + "Z", "info": {}, "q": [], "a": []}
     try:
         info = t.info or {}
     except Exception:
@@ -88,6 +95,73 @@ def fetch_raw(code):
     return raw
 
 
+# ------------------------------------------------------------------ Alpha Vantage (pelengkap bila yfinance tidak punya field)
+# Kunci dibaca dari env ALPHAVANTAGE_KEY atau alphavantage.json (TIDAK pernah dikirim ke browser). Paket gratis ~25 panggilan/hari.
+AV_CFG = Path(__file__).resolve().parent / "alphavantage.json"
+AV_DAILY = int(os.environ.get("SCREENER_AV_DAILY", "20"))
+_av = {"day": None, "n": 0}
+AV_MAP = {"PERatio": "trailingPE", "PriceToBookRatio": "priceToBook", "ReturnOnEquityTTM": "returnOnEquity", "ProfitMargin": "profitMargins",
+          "MarketCapitalization": "marketCap", "EPS": "trailingEps", "BookValue": "bookValue", "SharesOutstanding": "sharesOutstanding",
+          "Sector": "sector", "Industry": "industry", "Name": "longName"}
+CORE = ("trailingPE", "priceToBook", "returnOnEquity", "profitMargins", "marketCap", "trailingEps", "sector")
+
+
+def _av_key():
+    load_local_env()
+    if os.environ.get("ALPHAVANTAGE_KEY"):
+        return os.environ["ALPHAVANTAGE_KEY"]
+    try:
+        return json.loads(AV_CFG.read_text(encoding="utf-8")).get("key") or ""
+    except (OSError, ValueError):
+        return ""
+
+
+def fetch_av(code, http=None):
+    """-> dict field yfinance-style dari OVERVIEW Alpha Vantage ({} bila tidak ada / limit)."""
+    key = _av_key()
+    if not key:
+        return {}
+    today = datetime.date.today().isoformat()
+    if _av["day"] != today:
+        _av["day"], _av["n"] = today, 0
+    http = http or (lambda u: json.loads(urllib.request.urlopen(u, timeout=15).read().decode()))
+    for suffix in (".JK", ".JKT"):
+        if _av["n"] >= AV_DAILY:
+            return {}
+        _av["n"] += 1
+        js = http("https://www.alphavantage.co/query?" + urllib.parse.urlencode({"function": "OVERVIEW", "symbol": code + suffix, "LU9037PKIO1BYZEW": key}))
+        if js.get("Symbol"):
+            out = {}
+            for a, b in AV_MAP.items():
+                v = js.get(a)
+                if v in (None, "", "None", "-", "0"):
+                    continue
+                try:
+                    out[b] = v if b in ("sector", "industry", "longName") else float(v)
+                except ValueError:
+                    pass
+            return out
+        if "Note" in js or "Information" in js:        # kena limit
+            return {}
+    return {}
+
+
+def fill_missing(raw, http=None):
+    """Lengkapi raw['info'] dari Alpha Vantage HANYA untuk field yang kosong. Nilai yfinance tidak pernah ditimpa."""
+    info = raw.setdefault("info", {})
+    if all(info.get(k) is not None for k in CORE):
+        return raw
+    try:
+        extra = fetch_av(raw.get("code"), http)
+    except Exception:
+        extra = {}
+    added = [k for k, v in extra.items() if info.get(k) is None and not info.update({k: v})]
+    if added:
+        raw["src"] = ["yfinance", "alphavantage"]
+        raw["av_fields"] = added
+    return raw
+
+
 # ------------------------------------------------------------------ cache
 def get_raw(code, force=False, fetcher=fetch_raw):
     """-> (raw, status) status: 'cache' | 'baru' | 'basi' (gagal ambil, pakai cache lama) ; raw None bila tidak ada sama sekali."""
@@ -95,7 +169,7 @@ def get_raw(code, force=False, fetcher=fetch_raw):
     try:
         row = conn.execute("SELECT fetched_at,payload_json FROM fundamentals_cache WHERE security_code=?", (code,)).fetchone()
         if row:
-            age = (datetime.datetime.utcnow() - datetime.datetime.fromisoformat(row["fetched_at"].rstrip("Z"))).total_seconds() / 3600
+            age = (_utcnow() - datetime.datetime.fromisoformat(row["fetched_at"].rstrip("Z"))).total_seconds() / 3600
             if age < CACHE_HOURS and not (force and age > 1 / 60):
                 return json.loads(row["payload_json"]), "cache"
         with _fetch_lock:
@@ -106,6 +180,7 @@ def get_raw(code, force=False, fetcher=fetch_raw):
                 raw = fetcher(code)
             finally:
                 _last_fetch[0] = time.time()
+        fill_missing(raw)
         if not (raw.get("info") or raw.get("q") or raw.get("a")):
             raise RuntimeError("yfinance tidak mengembalikan data fundamental untuk %s.JK" % code)
         conn.execute("INSERT INTO fundamentals_cache(security_code,fetched_at,payload_json) VALUES(?,?,?) "
@@ -160,7 +235,7 @@ def analyze(raw, price):
     A = raw.get("a", [])
     sector = (info.get("sector") or "")
     fin = "financial" in sector.lower()
-    out = {"name": info.get("longName"), "sector": sector or None, "price": price}
+    out = {"name": info.get("longName"), "sector": sector or None, "price": price, "sources": raw.get("src") or ["yfinance"]}
 
     shares = info.get("sharesOutstanding") or (A[0].get("shares") if A else None)
     mcap = info.get("marketCap") or (price * shares if price and shares else None)
@@ -308,7 +383,7 @@ def analyze(raw, price):
 
     rep = info.get("mostRecentQuarter")
     if isinstance(rep, (int, float)):
-        rep = datetime.datetime.utcfromtimestamp(rep).strftime("%Y-%m-%d")
+        rep = datetime.datetime.fromtimestamp(rep, datetime.timezone.utc).strftime("%Y-%m-%d")
     out["report_date"] = rep or (raw["q"][0]["d"] if raw.get("q") else (A[0]["d"] if A else None))
     out["detail"] = {"annual": [{**x, "roe": (x["ni"] / x["eq"] * 100 if x.get("ni") is not None and x.get("eq") else None),
                                  "der": (x["debt"] / x["eq"] if x.get("debt") is not None and x.get("eq") else None)} for x in A[:4]],
@@ -346,7 +421,7 @@ def enqueue(codes):
         fresh = set()
         for r in conn.execute("SELECT security_code,fetched_at FROM fundamentals_cache"):
             try:
-                age = (datetime.datetime.utcnow() - datetime.datetime.fromisoformat(r[1].rstrip("Z"))).total_seconds() / 3600
+                age = (_utcnow() - datetime.datetime.fromisoformat(r[1].rstrip("Z"))).total_seconds() / 3600
                 if age < CACHE_HOURS:
                     fresh.add(r[0])
             except Exception:

@@ -1,0 +1,8 @@
+name = "idx-research-d1-proxy"
+main = "d1-proxy.js"
+compatibility_date = "2026-11-13"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "idx-screener-state"
+database_id = "cf66a990-bb05-4874-a46c-0d50ad73a88d"

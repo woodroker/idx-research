@@ -1,11 +1,13 @@
 {
-  "token": "use your token bot",
-  "chat_id": "",
-  "enabled": false,
+  "enabled": true,
   "market_only": true,
   "live_only": true,
-  "max_per_day": 20,
-  "max_burst": 5,
-  "min_gap_sec": 4,
-  "per_code_per_day": 1
+  "max_per_day": 60,
+  "max_burst": 6,
+  "min_gap_sec": 5,
+  "per_code_per_day": 1,
+  "free_float_risk_enabled": true,
+  "free_float_penalty_per_pp": 1.0,
+  "free_float_max_penalty": 10.0,
+  "free_float_urgency_horizon_days": 1095
 }

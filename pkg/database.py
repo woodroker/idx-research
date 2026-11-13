@@ -1,14 +1,15 @@
-"""Database Model C (screener.db) - skema v2.
-Perubahan dari v1: satu dataset per (jenis, tanggal) agar tidak tumpang tindih, kolom origin/parser_version,
-tabel app_meta. Tabel lama (user, watchlist, audit_log) tidak diubah.
+"""Database Model C (screener.db) - skema v3.
+Skema v3 menambahkan telegram_outbox untuk antrean notifikasi persisten lintas proses.
+Upgrade tidak menghapus data v1/v2.
 """
 from pathlib import Path
 import sqlite3, shutil, datetime
+import os
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "screener.db"
 BACKUP_DIR = BASE_DIR / "backups"
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "3"
 
 SCHEMA = r"""
 PRAGMA foreign_keys = ON;
@@ -83,14 +84,40 @@ CREATE TABLE IF NOT EXISTS alert_log (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_alert_day ON alert_log(day, kind, status);
+CREATE TABLE IF NOT EXISTS telegram_outbox (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    day TEXT NOT NULL,
+    code TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','processing','sent','failed','cancelled')),
+    attempts INTEGER NOT NULL DEFAULT 0,
+    available_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    locked_at TEXT,
+    last_error TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sent_at TEXT,
+    UNIQUE(day, code, kind)
+);
+CREATE INDEX IF NOT EXISTS idx_telegram_outbox_ready ON telegram_outbox(day, status, available_at, id);
 CREATE TABLE IF NOT EXISTS app_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS telegram_scan_cache (
+    bucket INTEGER PRIMARY KEY,
+    trade_day TEXT NOT NULL,
+    bars_json TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 """
 
 
 def connect(path=None):
+    if os.environ.get("SCREENER_D1_API_URL"):
+        from d1_client import connect as d1_connect
+        return d1_connect()
     conn = sqlite3.connect(path or DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -122,6 +149,9 @@ def _upgrade_v1(conn):
 
 
 def initialize():
+    if os.environ.get("SCREENER_D1_API_URL"):
+        # The remote database is provisioned from cloud/d1/schema.sql.
+        return
     with connect() as conn:
         conn.executescript(SCHEMA)
         _upgrade_v1(conn)

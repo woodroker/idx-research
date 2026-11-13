@@ -1,0 +1,33 @@
+# Local credentials and environment overrides
+.env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local SQLite state and backups. The cloud worker uses D1.
+pkg/screener.db
+pkg/screener.db-*
+pkg/*.sqlite
+pkg/*.sqlite3
+pkg/backups/
+pkg/uploads/
+pkg/legacy/legacy_embedded_D.json
+
+# Imported personal/research files are kept out of the source repository.
+pkg/data/
+
+# Generated screen state and API caches
+pkg/signals_today.json
+pkg/signals_history.json
+pkg/signal_bars.json
+pkg/.api_data_cache.gz*
+pkg/alphavantage.json
+
+# Backtest outputs, logs and Python runtime files (keep backtest source code).
+**/hasil_backtest*/
+**/backtest-results/
+**/backtest_results/
+**/*.backtest.csv
+**/*.backtest.json
+**/__pycache__/
+*.py[cod]

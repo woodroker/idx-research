@@ -1,0 +1,4 @@
+.env
+alphavantage.json
+.api_data_cache.gz
+.api_data_cache.gz.tmp

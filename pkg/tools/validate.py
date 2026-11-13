@@ -1,12 +1,12 @@
 """Validasi migrasi: jumlah data + isi data + sidik jari kalkulasi, sumber lama vs screener.db.
 Kode keluar 0 = LULUS (aman menonaktifkan penyimpanan lama), 1 = ada yang perlu diperiksa.
-Contoh: python validate.py            python validate.py --usr-json export_indexeddb.json
+Contoh: python tools/validate.py            python tools/validate.py --usr-json export_indexeddb.json
 """
 import argparse, json, sys
 from pathlib import Path
+BASE = Path(__file__).resolve().parent.parent          # folder proyek (tools/ ada di dalamnya)
+sys.path.insert(0, str(BASE))
 import database, importer, store
-
-BASE = Path(__file__).resolve().parent
 
 
 def norm(x):
